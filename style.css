@@ -1,0 +1,146 @@
+/* ==================== GENERAL RESET ==================== */
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+body { background-color: #0b2d63; color: white; overflow-x: hidden; }
+.hidden { display: none !important; }
+
+/* ==================== SPLASH SCREEN ==================== */
+#splash-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle, #103c80 0%, #06193b 100%); display: flex; flex-direction: column; justify-content: space-between; align-items: center; z-index: 9999; transition: opacity 0.5s ease-out; }
+.splash-content { text-align: center; margin-top: 15vh; }
+.app-logo { width: 150px; height: auto; filter: drop-shadow(0px 0px 15px gold); }
+.blink { animation: blinker 1.5s linear infinite; }
+@keyframes blinker { 50% { opacity: 0.4; } }
+.glow-text { color: #ffd700; margin-top: 20px; font-size: 24px; text-shadow: 0 0 10px #ffcc00; text-align: center; }
+.subtitle { color: #ffd700; font-size: 14px; margin-top: 5px; letter-spacing: 2px; }
+.loader-container { width: 80%; max-width: 300px; height: 6px; background-color: rgba(255,255,255,0.2); border-radius: 10px; margin: 40px auto 10px auto; overflow: hidden; border: 1px solid #ffd700; }
+.progress-bar { width: 0%; height: 100%; background-color: #ffd700; box-shadow: 0 0 10px #ffd700; animation: load 3.5s linear forwards; }
+@keyframes load { 0% { width: 0%; } 100% { width: 100%; } }
+.loading-text { font-size: 12px; color: #aebcd0; }
+.splash-footer { background-color: #ce9c3b; color: #000; width: 100%; text-align: center; padding: 15px 10px; font-size: 14px; border-top-left-radius: 15px; border-top-right-radius: 15px; }
+
+/* ==================== DASHBOARD & HEADER ==================== */
+.dashboard-header { background-color: #0b2d63; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid gold; position: sticky; top: 0; z-index: 100; }
+.menu-icon { font-size: 24px; cursor: pointer; color: #ffd700; }
+.grid-container { display: flex; flex-wrap: wrap; padding: 20px; gap: 15px; }
+.card { background: #fff; color: #0b2d63; flex: 1 1 40%; padding: 20px 10px; text-align: center; border-radius: 12px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.3s; }
+.card:hover { transform: translateY(-5px); background: #f0f4ff; }
+
+/* ==================== NEW: BANNER & SPECIFIC COURSES ==================== */
+.banner-section {
+    padding: 0 20px;
+    width: 100%;
+    margin-bottom: 15px;
+}
+.promo-banner {
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    border: 2px solid #ffd700;
+    object-fit: cover;
+    max-height: 180px; /* Adjust banner height */
+}
+
+.popular-courses {
+    padding: 10px 20px 30px 20px;
+}
+.section-title {
+    color: #ffd700;
+    margin-bottom: 15px;
+    font-size: 18px;
+    border-bottom: 1px dashed rgba(255, 215, 0, 0.5);
+    padding-bottom: 5px;
+}
+.course-scroll-wrapper {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: thin; /* Firefox */
+}
+.course-scroll-wrapper::-webkit-scrollbar {
+    height: 4px;
+}
+.course-scroll-wrapper::-webkit-scrollbar-thumb {
+    background-color: #ce9c3b;
+    border-radius: 10px;
+}
+
+.course-item {
+    background: #fff;
+    color: #0b2d63;
+    min-width: 130px;
+    padding: 15px 10px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    flex-shrink: 0;
+}
+.course-icon {
+    font-size: 30px;
+    margin-bottom: 5px;
+}
+.course-item h4 {
+    font-size: 15px;
+    margin-bottom: 2px;
+}
+.course-item p {
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 10px;
+}
+.view-btn {
+    background: #0b2d63;
+    color: #ffd700;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    transition: 0.2s;
+}
+.view-btn:hover { background: #103c80; }
+
+/* ==================== SIDEBAR ==================== */
+.sidebar { position: fixed; top: 0; left: -300px; width: 260px; height: 100vh; background-color: #0b2d63; color: white; transition: left 0.3s ease-in-out; z-index: 10001; box-shadow: 4px 0 15px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
+.sidebar.active { left: 0; }
+.sidebar-header { padding: 20px; background-color: #ce9c3b; color: #0b2d63; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #ffd700; }
+.sidebar-header h3 { font-size: 20px; margin: 0; }
+.close-btn { font-size: 30px; cursor: pointer; line-height: 1; }
+.sidebar-links { list-style: none; padding: 10px 0; margin: 0; flex-grow: 1; }
+.sidebar-links li { border-bottom: 1px solid rgba(255,255,255,0.05); }
+.sidebar-links li a { color: white; text-decoration: none; font-size: 16px; display: block; padding: 15px 20px; transition: all 0.3s; }
+.sidebar-links li a:hover { background-color: rgba(255,215,0,0.1); padding-left: 28px; color: #ffd700; border-left: 4px solid #ffd700; }
+.sidebar-footer-info { padding: 15px; text-align: center; font-size: 12px; color: #aebcd0; background-color: #06193b; }
+.overlay, .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(2px); z-index: 10000; display: none; justify-content: center; align-items: center; }
+.modal-overlay { background-color: rgba(0,0,0,0.8); z-index: 10005; }
+
+/* ==================== LOGIN/REGISTER MODAL ==================== */
+.login-box { background-color: white; width: 90%; max-width: 380px; border-radius: 15px; padding: 25px; position: relative; color: #000; box-shadow: 0 10px 25px rgba(255,215,0,0.3); max-height: 90vh; overflow-y: auto; }
+.close-modal { position: absolute; top: 10px; right: 15px; font-size: 28px; cursor: pointer; color: #888; }
+.login-tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #eee; }
+.tab-btn { flex: 1; padding: 10px 5px; background: none; border: none; font-size: 14px; font-weight: bold; cursor: pointer; color: #888; }
+.tab-btn.active { color: #0b2d63; border-bottom: 3px solid #ffd700; }
+.login-form { display: flex; flex-direction: column; gap: 12px; }
+.login-form h3 { text-align: center; margin-bottom: 5px; }
+.login-form input, .form-select { padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; outline: none; width: 100%; background: #fff; }
+.login-form input:focus, .form-select:focus { border-color: #0b2d63; }
+.submit-btn { background-color: #0b2d63; color: white; padding: 12px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; margin-top: 10px; }
+.submit-btn:hover { opacity: 0.9; }
+.admin-btn { background-color: #ce9c3b; color: #000; }
+
+/* ==================== STUDENT PROFILE & ADMIN ==================== */
+.profile-card, .admin-card { background: white; color: #0b2d63; margin: 20px auto; width: 90%; max-width: 500px; border-radius: 15px; padding: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+.profile-avatar { font-size: 60px; background: #f0f0f0; width: 100px; height: 100px; line-height: 100px; border-radius: 50%; margin: 0 auto 10px auto; border: 3px solid #ffd700; }
+.profile-name { font-size: 22px; }
+.profile-phone { color: #666; margin-bottom: 20px; }
+.profile-details { text-align: left; background: #f9f9f9; padding: 15px; border-radius: 10px; border: 1px solid #eee; }
+.detail-row { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px dashed #ccc; padding-bottom: 5px; }
+.profile-back-btn { font-size: 16px; color: white; cursor: pointer; }
+.admin-container { padding: 20px; max-width: 600px; margin: 0 auto; }
+.admin-form-group { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+.admin-form-group input { padding: 12px; border: 1px solid #ccc; border-radius: 8px; }
+.status-box { margin-top: 15px; font-weight: bold; font-size: 14px; }
+.logout-btn { background-color: #d32f2f; margin-top: 20px; }
