@@ -1,7 +1,7 @@
 // AAPKA FINAL API URL
 const API_URL = "https://script.google.com/macros/s/AKfycbxQX4mu_FSY5WdWUIG5gkSgBlwQygbXgTB61fp3v4MY14DmN4cpDQuU1rg1kXfgCSvw/exec";
 
-// Global Memory
+// Global Variables
 let currentUser = null; 
 let fetchedData = { courses: [], tests: [] };
 let currentTestId = "";
@@ -11,409 +11,269 @@ let userAnswers = {};
 let timerInterval = null;
 let timeLeft = 0; 
 
-// YouTube Link Fixer
+// Helper: YouTube Fix
 function getEmbedUrl(url) {
     if (!url) return "";
-    let finalUrl = url;
-    if (url.includes("watch?v=")) {
-        finalUrl = url.replace("watch?v=", "embed/");
-        finalUrl = finalUrl.split("&")[0]; 
-    } else if (url.includes("youtu.be/")) {
-        finalUrl = url.replace("youtu.be/", "www.youtube.com/embed/");
-        finalUrl = finalUrl.split("?")[0];
-    }
-    return finalUrl;
+    try {
+        if (url.includes("watch?v=")) return url.replace("watch?v=", "embed/").split("&")[0];
+        if (url.includes("youtu.be/")) return url.replace("youtu.be/", "www.youtube.com/embed/").split("?")[0];
+    } catch(e) { console.error("URL error"); }
+    return url;
 }
 
-// Profile UI Update
+// UI Update Function
 function updateProfileUI() {
     if(!currentUser) return;
-    if(document.getElementById('prof-name')) document.getElementById('prof-name').innerText = currentUser.name || "Student";
-    if(document.getElementById('prof-mobile')) document.getElementById('prof-mobile').innerText = "+91 " + currentUser.mobile;
-    if(document.getElementById('prof-state')) document.getElementById('prof-state').innerText = currentUser.state || "N/A";
-    
-    let unlocked = currentUser.unlocked;
-    if(document.getElementById('prof-unlocked')) {
-        document.getElementById('prof-unlocked').innerText = (unlocked && unlocked.trim() !== "") ? unlocked : "No Premium Courses";
+    const ids = { 'prof-name': currentUser.name, 'prof-mobile': "+91 "+currentUser.mobile, 'prof-state': currentUser.state, 'prof-unlocked': currentUser.unlocked || "None" };
+    for (let id in ids) {
+        let el = document.getElementById(id);
+        if(el) el.innerText = ids[id];
     }
-    if(document.getElementById('open-login-btn')) document.getElementById('open-login-btn').innerHTML = "👨‍🎓 My Profile";
+    let loginBtn = document.getElementById('open-login-btn');
+    if(loginBtn) loginBtn.innerHTML = "👨‍🎓 My Profile";
 }
 
 document.addEventListener("DOMContentLoaded", function() {
     
-    // ================= SMART APK BANNER HIDER =================
-    const isWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)|Android.*Version\/[\d\.]+.*Chrome\/[0-9]+Mobile/i.test(navigator.userAgent) || window.matchMedia('(display-mode: standalone)').matches;
-    if (isWebView) {
-        const banner = document.getElementById('app-download-banner');
-        if (banner) banner.style.display = 'none';
-    }
-
-    // Auto-Login Check
-    const storedUser = localStorage.getItem('aceUser');
-    if (storedUser) {
-        try {
-            currentUser = JSON.parse(storedUser);
-            updateProfileUI();
-        } catch(e) { localStorage.removeItem('aceUser'); }
-    }
-
-    // SPLASH SCREEN & FORCE LOGIN
-    setTimeout(() => {
-        const splashScreen = document.getElementById('splash-screen');
-        const dashboard = document.getElementById('dashboard');
-        const loginModal = document.getElementById('login-modal');
+    // 1. SPLASH SCREEN REMOVER (Isse bahar rakha hai taaki ye har haal mein chale)
+    const removeSplash = () => {
+        const splash = document.getElementById('splash-screen');
+        const dash = document.getElementById('dashboard');
+        const login = document.getElementById('login-modal');
         
-        if(splashScreen) splashScreen.style.opacity = '0';
-        
-        setTimeout(() => {
-            if(splashScreen) splashScreen.classList.add('hidden');
-            
-            if(!currentUser) {
-                if(loginModal) {
-                    loginModal.classList.remove('hidden');
-                    loginModal.style.display = 'flex';
+        if(splash) {
+            splash.style.opacity = '0';
+            setTimeout(() => {
+                splash.classList.add('hidden');
+                if(!currentUser && login) {
+                    login.classList.remove('hidden');
+                    login.style.display = 'flex';
                     if(document.getElementById('close-login')) document.getElementById('close-login').style.display = 'none';
+                } else if(dash) {
+                    dash.classList.remove('hidden');
                 }
-            } else {
-                if(dashboard) dashboard.classList.remove('hidden');
-            }
-        }, 500);
-    }, 3500);
-
-    fetchLiveContent();
-
-    // NAVIGATION SCROLL
-    const scrollToSection = (id) => {
-        const section = document.getElementById(id);
-        if(section) {
-            const yOffset = -70; 
-            const y = section.getBoundingClientRect().top + window.pageYOffset + yOffset;
-            window.scrollTo({top: y, behavior: 'smooth'});
+            }, 600);
         }
     };
-
-    if(document.getElementById('nav-courses')) document.getElementById('nav-courses').onclick = () => scrollToSection('courses-section');
-    if(document.getElementById('nav-pdfs')) document.getElementById('nav-pdfs').onclick = () => scrollToSection('pdfs-section');
-    if(document.getElementById('nav-tests')) document.getElementById('nav-tests').onclick = () => scrollToSection('tests-section');
-    if(document.getElementById('nav-mocks')) document.getElementById('nav-mocks').onclick = () => scrollToSection('tests-section');
     
+    // 3.5 seconds baad splash screen ko hatane ka order
+    setTimeout(removeSplash, 3500);
+
+    // 2. AUTO-LOGIN
+    try {
+        const stored = localStorage.getItem('aceUser');
+        if(stored) {
+            currentUser = JSON.parse(stored);
+            updateProfileUI();
+        }
+    } catch(e) { localStorage.removeItem('aceUser'); }
+
+    // 3. FETCH CONTENT
+    fetchLiveContent();
+
+    // 4. NAVIGATION & BUTTONS
+    const navIds = ['nav-courses', 'nav-pdfs', 'nav-tests', 'nav-mocks'];
+    const sections = ['courses-section', 'pdfs-section', 'tests-section', 'tests-section'];
+    
+    navIds.forEach((id, index) => {
+        let el = document.getElementById(id);
+        if(el) el.onclick = () => {
+            const sec = document.getElementById(sections[index]);
+            if(sec) window.scrollTo({ top: sec.offsetTop - 70, behavior: 'smooth' });
+        };
+    });
+
     if(document.getElementById('nav-results')) {
         document.getElementById('nav-results').onclick = () => {
             if(currentUser) {
                 document.getElementById('dashboard').classList.add('hidden');
                 document.getElementById('profile-section').classList.remove('hidden');
-            } else { alert("🔐 Please login first!"); }
+            } else { alert("🔐 Login first!"); }
         };
     }
 
-    // MODAL & SIDEBAR
+    // Modal Controls
     const sidebar = document.getElementById('sidebar');
-    const sidebarOverlay = document.getElementById('sidebar-overlay');
-    
+    const overlay = document.getElementById('sidebar-overlay');
     if(document.getElementById('menu-icon')) {
-        document.getElementById('menu-icon').onclick = () => {
-            sidebar.classList.add('active');
-            sidebarOverlay.style.display = 'block';
+        document.getElementById('menu-icon').onclick = () => { 
+            if(sidebar) sidebar.classList.add('active'); 
+            if(overlay) overlay.style.display = 'block'; 
         };
     }
-    
-    const closeAll = () => {
+
+    window.closeAll = () => {
         if(sidebar) sidebar.classList.remove('active');
-        if(sidebarOverlay) sidebarOverlay.style.display = 'none';
-        if(currentUser && document.getElementById('login-modal')) {
-            document.getElementById('login-modal').classList.add('hidden');
-        }
+        if(overlay) overlay.style.display = 'none';
+        if(currentUser && document.getElementById('login-modal')) document.getElementById('login-modal').classList.add('hidden');
     };
-    
-    if(document.getElementById('close-btn')) document.getElementById('close-btn').onclick = closeAll;
-    if(sidebarOverlay) sidebarOverlay.onclick = closeAll;
-    
-    if(document.getElementById('close-login')) {
-        document.getElementById('close-login').onclick = () => {
-            if(currentUser) document.getElementById('login-modal').classList.add('hidden');
+
+    if(document.getElementById('close-btn')) document.getElementById('close-btn').onclick = window.closeAll;
+    if(overlay) overlay.onclick = window.closeAll;
+
+    // Login Form Tabs Logic
+    const tabs = ['tab-login', 'tab-register', 'tab-admin'];
+    const forms = ['student-login-form', 'student-register-form', 'admin-login-form'];
+    tabs.forEach((tabId, i) => {
+        let t = document.getElementById(tabId);
+        if(t) t.onclick = () => {
+            tabs.forEach(id => document.getElementById(id).classList.remove('active'));
+            forms.forEach(id => document.getElementById(id).classList.add('hidden'));
+            t.classList.add('active');
+            document.getElementById(forms[i]).classList.remove('hidden');
         };
-    }
+    });
 
-    if(document.getElementById('close-details')) {
-        document.getElementById('close-details').onclick = () => {
-            document.getElementById('course-details-modal').classList.add('hidden');
-            document.getElementById('cd-content').innerHTML = ''; 
-        };
-    }
-
-    if(document.getElementById('open-login-btn')) {
-        document.getElementById('open-login-btn').onclick = (e) => {
-            e.preventDefault(); closeAll();
-            const modal = document.getElementById('login-modal');
-            modal.classList.remove('hidden'); modal.style.display = 'flex';
-            document.getElementById('close-login').style.display = 'block'; 
-        };
-    }
-
-    // LOGIN / REGISTER TABS
-    const tabLogin = document.getElementById('tab-login');
-    const tabRegister = document.getElementById('tab-register');
-    const tabAdmin = document.getElementById('tab-admin');
-    const formLogin = document.getElementById('student-login-form');
-    const formRegister = document.getElementById('student-register-form');
-    const formAdmin = document.getElementById('admin-login-form');
-
-    function switchTab(activeTab, showForm) {
-        [tabLogin, tabRegister, tabAdmin].forEach(t => t && t.classList.remove('active'));
-        [formLogin, formRegister, formAdmin].forEach(f => f && f.classList.add('hidden'));
-        if(activeTab) activeTab.classList.add('active');
-        if(showForm) showForm.classList.remove('hidden');
-    }
-    
-    if(tabLogin) tabLogin.onclick = () => switchTab(tabLogin, formLogin);
-    if(tabRegister) tabRegister.onclick = () => switchTab(tabRegister, formRegister);
-    if(tabAdmin) tabAdmin.onclick = () => switchTab(tabAdmin, formAdmin);
-
-    // FORMS SUBMIT
-    if(formRegister) {
-        formRegister.onsubmit = async (e) => {
+    // 5. LOGIN ACTION
+    const loginForm = document.getElementById('student-login-form');
+    if(loginForm) {
+        loginForm.onsubmit = async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('btn-register'); btn.innerText = "Processing...";
-            const payload = {
-                action: 'register', mobile: document.getElementById('reg-mobile').value,
-                email: document.getElementById('reg-email').value, dob: document.getElementById('reg-dob').value,
-                state: document.getElementById('reg-state').value, password: document.getElementById('reg-pass').value
-            };
+            const btn = document.getElementById('btn-login');
+            btn.innerText = "Verifying...";
             try {
-                let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-                let data = await res.json();
-                if (data.status === 'success') { alert("Success! Login now."); switchTab(tabLogin, formLogin); formRegister.reset(); } 
-                else { alert("Error: " + data.message); }
-            } catch(err) { alert("Network Error."); }
-            btn.innerText = "Register Now";
-        };
-    }
-
-    if(formLogin) {
-        formLogin.onsubmit = async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn-login'); btn.innerText = "Verifying...";
-            const payload = { action: 'login', mobile: document.getElementById('login-mobile').value, password: document.getElementById('login-pass').value };
-            try {
-                let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-                let data = await res.json();
-                if (data.status === 'success') {
-                    currentUser = data.user; 
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({
+                    action: 'login',
+                    mobile: document.getElementById('login-mobile').value,
+                    password: document.getElementById('login-pass').value
+                })});
+                const data = await res.json();
+                if(data.status === 'success') {
+                    currentUser = data.user;
                     localStorage.setItem('aceUser', JSON.stringify(currentUser));
                     updateProfileUI();
                     document.getElementById('login-modal').classList.add('hidden');
                     document.getElementById('dashboard').classList.remove('hidden');
-                    formLogin.reset();
-                } else { alert("Error: " + data.message); }
-            } catch(err) { alert("Error connecting to server."); }
+                } else { alert(data.message); }
+            } catch(err) { alert("Server error"); }
             btn.innerText = "Login";
         };
     }
-
-    if(formAdmin) {
-        formAdmin.onsubmit = async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn-admin'); btn.innerText = "Accessing...";
-            const payload = { action: 'admin_login', admin_id: document.getElementById('admin-id').value, admin_pass: document.getElementById('admin-pass').value };
-            try {
-                let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
-                let data = await res.json();
-                if (data.status === 'success') {
-                    document.getElementById('login-modal').classList.add('hidden');
-                    document.getElementById('admin-panel').classList.remove('hidden');
-                    formAdmin.reset();
-                } else { alert("Admin Error: " + data.message); }
-            } catch(err) { alert("Network Error."); }
-            btn.innerText = "Access Portal";
-        };
-    }
-
-    // LOGOUT
-    document.querySelectorAll('.logout-btn').forEach(btn => {
-        btn.onclick = () => {
-            currentUser = null; 
-            localStorage.removeItem('aceUser'); 
-            location.reload(); // Hard reset for safety
-        };
-    });
-
-    // ADMIN UNLOCK
-    if(document.getElementById('btn-verify')) {
-        document.getElementById('btn-verify').onclick = async () => {
+    
+    // Admin Unlock Button
+    const verifyBtn = document.getElementById('btn-verify');
+    if(verifyBtn) {
+        verifyBtn.onclick = async () => {
             const mobile = document.getElementById('verify-mobile').value;
-            const itemId = document.getElementById('verify-item').value;
-            const statusBox = document.getElementById('verify-status');
-            if(mobile.length !== 10 || itemId === "") return alert("Check inputs");
-            
-            statusBox.innerText = "Updating Database...";
+            const item = document.getElementById('verify-item').value;
+            if(mobile.length !== 10) return alert("Enter 10 digit mobile");
+            verifyBtn.innerText = "Processing...";
             try {
-                let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'unlock_item', mobile, item_id: itemId }) });
-                let data = await res.json();
-                statusBox.innerText = data.status === 'success' ? "✅ Unlocked!" : "❌ " + data.message;
-            } catch(e) { statusBox.innerText = "❌ Connection Failed"; }
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'unlock_item', mobile, item_id: item }) });
+                const data = await res.json();
+                alert(data.message);
+            } catch(e) { alert("Failed"); }
+            verifyBtn.innerText = "Verify & Unlock";
         };
     }
 
-    // FETCH CONTENT
-    async function fetchLiveContent() {
-        try {
-            let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'get_content' }) });
-            let data = await res.json();
-            if(data.status === 'success') {
-                fetchedData.courses = data.courses || [];
-                fetchedData.tests = data.tests || [];
-                renderAllSections();
-            }
-        } catch (e) { console.log("Fetch failed"); }
-    }
-
-    function renderAllSections() {
-        const vWrap = document.getElementById('video-courses-wrapper');
-        const pWrap = document.getElementById('pdf-notes-wrapper');
-        const tWrap = document.getElementById('test-series-wrapper');
-        [vWrap, pWrap, tWrap].forEach(w => w && (w.innerHTML = ''));
-
-        fetchedData.courses.filter(c => c.type.toLowerCase() === 'video').forEach(c => vWrap.appendChild(createCard(c, 'video')));
-        fetchedData.courses.filter(c => c.type.toLowerCase() === 'pdf').forEach(c => pWrap.appendChild(createCard(c, 'pdf')));
-        fetchedData.tests.forEach(t => tWrap.appendChild(createTestCard(t)));
-    }
-
-    function createCard(item, type) {
-        let icon = type === 'video' ? '🎬' : '📄';
-        if(item.category.toLowerCase().includes('tally')) icon = '📊';
-        let div = document.createElement('div'); div.className = 'course-item';
-        div.innerHTML = `<div class="course-icon">${icon}</div><h4>${item.name}</h4><p>${item.category} | ${item.price == 0 ? 'Free' : '₹'+item.price}</p><button class="view-btn" onclick="openCourseDetails('${item.id}', false)">View</button>`;
-        return div;
-    }
-
-    function createTestCard(test) {
-        let div = document.createElement('div'); div.className = 'course-item'; div.style.borderTop = "4px solid #ce9c3b";
-        div.innerHTML = `<div class="course-icon">⏱️</div><h4>${test.name}</h4><p>${test.questions} Qs | ${test.time} Min</p><button class="view-btn" style="background:#ce9c3b; color:#000" onclick="openCourseDetails('${test.id}', true)">Start</button>`;
-        return div;
-    }
+    // Logout
+    document.querySelectorAll('.logout-btn').forEach(b => b.onclick = () => { localStorage.clear(); location.reload(); });
 });
 
-// EXAM ENGINE
-window.startLiveExam = async function(id, name, time) {
+// 6. CONTENT LOADER
+async function fetchLiveContent() {
+    try {
+        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'get_content' }) });
+        const data = await res.json();
+        if(data.status === 'success') {
+            fetchedData.courses = data.courses || [];
+            fetchedData.tests = data.tests || [];
+            renderUI();
+        }
+    } catch(e) { console.error("Data load failed"); }
+}
+
+function renderUI() {
+    const vWrap = document.getElementById('video-courses-wrapper');
+    const pWrap = document.getElementById('pdf-notes-wrapper');
+    const tWrap = document.getElementById('test-series-wrapper');
+    if(vWrap) vWrap.innerHTML = ''; if(pWrap) pWrap.innerHTML = ''; if(tWrap) tWrap.innerHTML = '';
+
+    fetchedData.courses.forEach(c => {
+        const type = c.type.toLowerCase();
+        const div = document.createElement('div'); div.className = 'course-item';
+        div.innerHTML = `<div class="course-icon">${type==='video'?'🎬':'📄'}</div><h4>${c.name}</h4><p>₹${c.price || '0'}</p><button class="view-btn" onclick="openDetails('${c.id}', false)">View</button>`;
+        if(type==='video' && vWrap) vWrap.appendChild(div);
+        if(type==='pdf' && pWrap) pWrap.appendChild(div);
+    });
+
+    fetchedData.tests.forEach(t => {
+        const div = document.createElement('div'); div.className = 'course-item'; div.style.borderTop = "4px solid #ce9c3b";
+        div.innerHTML = `<div class="course-icon">⏱️</div><h4>${t.name}</h4><p>${t.questions} Qs</p><button class="view-btn" style="background:#ce9c3b;color:#000" onclick="openDetails('${t.id}', true)">Start</button>`;
+        if(tWrap) tWrap.appendChild(div);
+    });
+}
+
+// 7. TEST ENGINE
+window.openDetails = function(id, isTest) {
+    const item = isTest ? fetchedData.tests.find(x=>x.id===id) : fetchedData.courses.find(x=>x.id===id);
+    if(!item) return;
+
+    if(item.price > 0 && (!currentUser || !currentUser.unlocked || !currentUser.unlocked.includes(id))) {
+        const upi = `upi://pay?pa=9589769913@ybl&pn=ArithmeticComputer&am=${item.price}&cu=INR`;
+        document.getElementById('cd-content').innerHTML = `<div style="text-align:center;padding:10px"><h2>🔒 Premium</h2><p>Fee: ₹${item.price}</p><a href="${upi}" class="submit-btn" style="text-decoration:none;display:block">Pay via UPI</a></div>`;
+    } else {
+        if(isTest) {
+            document.getElementById('cd-content').innerHTML = `<div style="text-align:center;padding:10px"><h2>📝 ${item.name}</h2><button class="submit-btn" onclick="startExam('${item.id}', ${item.time})">Start Now</button></div>`;
+        } else {
+            if(item.type.toLowerCase()==='video') document.getElementById('cd-content').innerHTML = `<iframe width="100%" height="220" src="${getEmbedUrl(item.link)}" frameborder="0" allowfullscreen></iframe>`;
+            else document.getElementById('cd-content').innerHTML = `<a href="${item.link}" target="_blank" class="submit-btn">Open PDF</a>`;
+        }
+    }
+    document.getElementById('cd-title').innerText = item.name;
+    document.getElementById('course-details-modal').classList.remove('hidden');
+    document.getElementById('course-details-modal').style.display = 'flex';
+};
+
+window.startExam = async function(id, time) {
     document.getElementById('course-details-modal').classList.add('hidden');
     document.getElementById('dashboard').classList.add('hidden');
     document.getElementById('test-engine-container').classList.remove('hidden');
     
-    document.getElementById('te-title').innerText = name;
-    document.getElementById('te-options').innerHTML = 'Loading questions...';
-    
     try {
-        let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'get_questions', test_id: id }) });
-        let data = await res.json();
+        const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'get_questions', test_id: id }) });
+        const data = await res.json();
         if(data.status === 'success') {
-            testQuestions = data.questions; timeLeft = time * 60;
-            currentQIndex = 0; userAnswers = {};
-            startTimer(); renderQuestion();
+            testQuestions = data.questions; currentQIndex = 0; userAnswers = {};
+            timeLeft = time * 60;
+            renderQ();
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                let m = Math.floor(timeLeft/60), s = timeLeft%60;
+                document.getElementById('te-timer').innerText = `⏳ ${m}:${s<10?'0'+s:s}`;
+                if(timeLeft<=0) submitExam();
+            }, 1000);
         }
-    } catch(e) { alert("Test failed to load"); }
+    } catch(e) { alert("Error loading exam"); }
 };
 
-function startTimer() {
-    timerInterval = setInterval(() => {
-        timeLeft--;
-        let m = Math.floor(timeLeft/60), s = timeLeft%60;
-        document.getElementById('te-timer').innerText = `⏳ ${m}:${s < 10 ? '0'+s : s}`;
-        if(timeLeft <= 0) { clearInterval(timerInterval); submitExam(); }
-    }, 1000);
-}
-
-function renderQuestion() {
-    if (testQuestions.length === 0) return;
+function renderQ() {
     let q = testQuestions[currentQIndex];
-    document.getElementById('te-qno').innerText = `Question ${currentQIndex+1} of ${testQuestions.length}`;
+    document.getElementById('te-qno').innerText = `Q ${currentQIndex+1} of ${testQuestions.length}`;
     document.getElementById('te-qtext').innerText = q.question;
-    
-    let html = '';
+    let h = '';
     [{k:'A',v:q.optA},{k:'B',v:q.optB},{k:'C',v:q.optC},{k:'D',v:q.optD}].forEach(o => {
-        if(o.v) {
-            let isChecked = userAnswers[currentQIndex] === o.k ? 'checked' : '';
-            html += `<label class="option-label" onclick="selectOption(${currentQIndex},'${o.k}')"><input type="radio" name="opt" value="${o.k}" ${isChecked}> <span style="color:#ce9c3b; font-weight:bold;">${o.k}.</span> ${o.v}</label>`;
-        }
+        if(o.v) h += `<label class="option-label" onclick="setAns('${o.k}')"><input type="radio" name="opt" ${userAnswers[currentQIndex]===o.k?'checked':''}> ${o.k}. ${o.v}</label>`;
     });
-    document.getElementById('te-options').innerHTML = html;
-    
-    // Yahan Button Disable/Enable theek kar diya gaya hai
-    document.getElementById('btn-prev').disabled = (currentQIndex === 0);
-    
-    let btnNext = document.getElementById('btn-next');
-    btnNext.disabled = false; // Next button ko unlock rakha hai
-    btnNext.classList.toggle('hidden', currentQIndex === testQuestions.length-1);
-    
+    document.getElementById('te-options').innerHTML = h;
+    document.getElementById('btn-prev').disabled = currentQIndex === 0;
+    document.getElementById('btn-next').classList.toggle('hidden', currentQIndex === testQuestions.length-1);
     document.getElementById('btn-submit-exam').classList.toggle('hidden', currentQIndex !== testQuestions.length-1);
 }
 
-window.selectOption = (idx, val) => { userAnswers[idx] = val; renderQuestion(); };
-
-// Safe event listeners for buttons
-document.addEventListener("DOMContentLoaded", function() {
-    if(document.getElementById('btn-next')) {
-        document.getElementById('btn-next').onclick = () => { 
-            if(currentQIndex < testQuestions.length - 1) {
-                currentQIndex++; renderQuestion(); 
-            }
-        };
-    }
-    if(document.getElementById('btn-prev')) {
-        document.getElementById('btn-prev').onclick = () => { 
-            if(currentQIndex > 0) {
-                currentQIndex--; renderQuestion(); 
-            }
-        };
-    }
-    if(document.getElementById('btn-submit-exam')) {
-        document.getElementById('btn-submit-exam').onclick = () => { 
-            if(confirm("Submit Exam?")) submitExam(); 
-        };
-    }
-    if(document.getElementById('btn-close-result')) {
-        document.getElementById('btn-close-result').onclick = () => location.reload();
-    }
-});
+window.setAns = (v) => { userAnswers[currentQIndex] = v; };
+document.getElementById('btn-next').onclick = () => { currentQIndex++; renderQ(); };
+document.getElementById('btn-prev').onclick = () => { currentQIndex--; renderQ(); };
+document.getElementById('btn-submit-exam').onclick = submitExam;
 
 function submitExam() {
     clearInterval(timerInterval);
-    let correct = 0;
-    testQuestions.forEach((q, i) => { if(userAnswers[i] === q.answer) correct++; });
-    
-    document.getElementById('tr-score').innerText = `${correct} / ${testQuestions.length}`;
-    document.getElementById('tr-correct').innerText = `✅ Correct: ${correct}`;
-    document.getElementById('tr-wrong').innerText = `❌ Wrong: ${testQuestions.length - correct}`;
-    
+    let score = 0;
+    testQuestions.forEach((q, i) => { if(userAnswers[i] === q.answer) score++; });
+    document.getElementById('tr-score').innerText = `${score} / ${testQuestions.length}`;
     document.getElementById('test-engine-container').classList.add('hidden');
     document.getElementById('test-result-modal').classList.remove('hidden');
     document.getElementById('test-result-modal').style.display = 'flex';
 }
-
-// VIEW DETAILS & UPI
-window.openCourseDetails = function(id, isTest) {
-    let item = isTest ? fetchedData.tests.find(t=>t.id===id) : fetchedData.courses.find(c=>c.id===id);
-    if(!item) return;
-
-    if (item.price > 0 && (!currentUser || !currentUser.unlocked || !currentUser.unlocked.includes(id))) {
-        const upi = `upi://pay?pa=9589769913@ybl&pn=Arithmetic%20Computer&am=${item.price}&cu=INR`;
-        document.getElementById('cd-content').innerHTML = `
-            <div style="text-align:center;padding:20px">
-                <h2 style="font-size:40px; margin-bottom:10px;">🔒</h2>
-                <h3 style="color:#d32f2f; margin-bottom:10px;">Premium Content</h3>
-                <p style="color:#333; margin-bottom:15px; font-size: 16px;">Fee: <strong>₹${item.price}</strong></p>
-                <a href="${upi}" style="display:block;background:#28a745;color:#fff;padding:12px;border-radius:8px;text-decoration:none;margin-bottom:15px;box-shadow: 0 4px 6px rgba(0,0,0,0.2);">Pay ₹${item.price} via UPI App</a>
-                <p style="font-size:13px;background:#f9f9f9;padding:10px;border-radius:5px;color:#666;">Send screenshot to Admin WhatsApp (+91 9589769913) after payment.</p>
-            </div>`;
-    } else {
-        if(isTest) {
-            document.getElementById('cd-content').innerHTML = `
-            <div style="text-align:center;padding:20px">
-                <h2 style="font-size:40px; margin-bottom:10px;">📝</h2>
-                <h3 style="color:#0b2d63; margin-bottom:10px;">${item.name}</h3>
-                <p style="margin-bottom:15px; color:#333; font-weight: bold;">${item.questions} Qs | ${item.time} Mins</p>
-                <button class="submit-btn" style="background:#ce9c3b;color:#0b2d63;margin-top:15px;font-weight:bold;" onclick="startLiveExam('${item.id}','${item.name}',${item.time})">Start Exam Now</button>
-            </div>`;
-        } else {
-            let cType = item.type ? item.type.toLowerCase() : '';
-            if (cType === 'video') { 
-                document.getElementById('cd-content').innerHTML = `<iframe w
+document.getElementById('btn-close-result').onclick = () => location.reload();
