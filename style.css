@@ -24,86 +24,22 @@ body { background-color: #0b2d63; color: white; overflow-x: hidden; }
 .card { background: #fff; color: #0b2d63; flex: 1 1 40%; padding: 20px 10px; text-align: center; border-radius: 12px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.3s; }
 .card:hover { transform: translateY(-5px); background: #f0f4ff; }
 
-/* ==================== NEW: BANNER & SPECIFIC COURSES ==================== */
-.banner-section {
-    padding: 0 20px;
-    width: 100%;
-    margin-bottom: 15px;
-}
-.promo-banner {
-    width: 100%;
-    height: auto;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    border: 2px solid #ffd700;
-    object-fit: cover;
-    max-height: 180px; /* Adjust banner height */
-}
-
-.popular-courses {
-    padding: 10px 20px 30px 20px;
-}
-.section-title {
-    color: #ffd700;
-    margin-bottom: 15px;
-    font-size: 18px;
-    border-bottom: 1px dashed rgba(255, 215, 0, 0.5);
-    padding-bottom: 5px;
-}
-.course-scroll-wrapper {
-    display: flex;
-    gap: 15px;
-    overflow-x: auto;
-    padding-bottom: 10px;
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: thin; /* Firefox */
-}
-.course-scroll-wrapper::-webkit-scrollbar {
-    height: 4px;
-}
-.course-scroll-wrapper::-webkit-scrollbar-thumb {
-    background-color: #ce9c3b;
-    border-radius: 10px;
-}
-
-.course-item {
-    background: #fff;
-    color: #0b2d63;
-    min-width: 130px;
-    padding: 15px 10px;
-    border-radius: 10px;
-    text-align: center;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    flex-shrink: 0;
-}
-.course-icon {
-    font-size: 30px;
-    margin-bottom: 5px;
-}
-.course-item h4 {
-    font-size: 15px;
-    margin-bottom: 2px;
-}
-.course-item p {
-    font-size: 11px;
-    color: #666;
-    margin-bottom: 10px;
-}
-.view-btn {
-    background: #0b2d63;
-    color: #ffd700;
-    border: none;
-    padding: 6px 10px;
-    border-radius: 5px;
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-    width: 100%;
-    transition: 0.2s;
-}
+/* ==================== BANNER & COURSES ==================== */
+.banner-section { padding: 0 20px; width: 100%; margin-bottom: 15px; }
+.promo-banner { width: 100%; height: auto; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 2px solid #ffd700; object-fit: cover; max-height: 180px; }
+.popular-courses { padding: 10px 20px 30px 20px; }
+.section-title { color: #ffd700; margin-bottom: 15px; font-size: 18px; border-bottom: 1px dashed rgba(255, 215, 0, 0.5); padding-bottom: 5px; }
+.course-scroll-wrapper { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; -ms-overflow-style: none; scrollbar-width: thin; }
+.course-scroll-wrapper::-webkit-scrollbar { height: 4px; }
+.course-scroll-wrapper::-webkit-scrollbar-thumb { background-color: #ce9c3b; border-radius: 10px; }
+.course-item { background: #fff; color: #0b2d63; min-width: 140px; max-width: 150px; padding: 15px 10px; border-radius: 10px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2); flex-shrink: 0; display: flex; flex-direction: column; justify-content: space-between; }
+.course-icon { font-size: 30px; margin-bottom: 5px; }
+.course-item h4 { font-size: 14px; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.course-item p { font-size: 11px; color: #666; margin-bottom: 10px; }
+.view-btn { background: #0b2d63; color: #ffd700; border: none; padding: 6px 10px; border-radius: 5px; font-size: 12px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; }
 .view-btn:hover { background: #103c80; }
 
-/* ==================== SIDEBAR ==================== */
+/* ==================== SIDEBAR & OVERLAYS ==================== */
 .sidebar { position: fixed; top: 0; left: -300px; width: 260px; height: 100vh; background-color: #0b2d63; color: white; transition: left 0.3s ease-in-out; z-index: 10001; box-shadow: 4px 0 15px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
 .sidebar.active { left: 0; }
 .sidebar-header { padding: 20px; background-color: #ce9c3b; color: #0b2d63; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #ffd700; }
@@ -117,9 +53,10 @@ body { background-color: #0b2d63; color: white; overflow-x: hidden; }
 .overlay, .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(2px); z-index: 10000; display: none; justify-content: center; align-items: center; }
 .modal-overlay { background-color: rgba(0,0,0,0.8); z-index: 10005; }
 
-/* ==================== LOGIN/REGISTER MODAL ==================== */
+/* ==================== MODALS ==================== */
 .login-box { background-color: white; width: 90%; max-width: 380px; border-radius: 15px; padding: 25px; position: relative; color: #000; box-shadow: 0 10px 25px rgba(255,215,0,0.3); max-height: 90vh; overflow-y: auto; }
-.close-modal { position: absolute; top: 10px; right: 15px; font-size: 28px; cursor: pointer; color: #888; }
+.close-modal { position: absolute; top: 10px; right: 15px; font-size: 28px; cursor: pointer; color: #888; transition: 0.2s; }
+.close-modal:hover { color: #d32f2f; }
 .login-tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #eee; }
 .tab-btn { flex: 1; padding: 10px 5px; background: none; border: none; font-size: 14px; font-weight: bold; cursor: pointer; color: #888; }
 .tab-btn.active { color: #0b2d63; border-bottom: 3px solid #ffd700; }
@@ -131,7 +68,7 @@ body { background-color: #0b2d63; color: white; overflow-x: hidden; }
 .submit-btn:hover { opacity: 0.9; }
 .admin-btn { background-color: #ce9c3b; color: #000; }
 
-/* ==================== STUDENT PROFILE & ADMIN ==================== */
+/* ==================== PROFILES & ADMIN CARDS ==================== */
 .profile-card, .admin-card { background: white; color: #0b2d63; margin: 20px auto; width: 90%; max-width: 500px; border-radius: 15px; padding: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
 .profile-avatar { font-size: 60px; background: #f0f0f0; width: 100px; height: 100px; line-height: 100px; border-radius: 50%; margin: 0 auto 10px auto; border: 3px solid #ffd700; }
 .profile-name { font-size: 22px; }
@@ -144,3 +81,4 @@ body { background-color: #0b2d63; color: white; overflow-x: hidden; }
 .admin-form-group input { padding: 12px; border: 1px solid #ccc; border-radius: 8px; }
 .status-box { margin-top: 15px; font-weight: bold; font-size: 14px; }
 .logout-btn { background-color: #d32f2f; margin-top: 20px; }
+                           
