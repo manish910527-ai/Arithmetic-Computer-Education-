@@ -46,29 +46,8 @@
 
         <div class="popular-courses">
             <h3 class="section-title">🌟 Our Top Courses</h3>
-            <div class="course-scroll-wrapper">
-                
-                <div class="course-item">
-                    <div class="course-icon">💻</div>
-                    <h4>CPCT</h4>
-                    <p>Typing & Computer</p>
-                    <button class="view-btn">View Details</button>
-                </div>
-                
-                <div class="course-item">
-                    <div class="course-icon">📊</div>
-                    <h4>Tally ERP 9</h4>
-                    <p>Accounting Expert</p>
-                    <button class="view-btn">View Details</button>
-                </div>
-                
-                <div class="course-item">
-                    <div class="course-icon">🖥️</div>
-                    <h4>Basic Computer</h4>
-                    <p>Fundamentals</p>
-                    <button class="view-btn">View Details</button>
-                </div>
-
+            <div class="course-scroll-wrapper" id="top-courses-wrapper">
+                <p style="color: #aebcd0; font-size: 14px; padding-left: 5px;">Fetching live content...</p>
             </div>
         </div>
     </div>
@@ -130,7 +109,7 @@
             <li><a href="#contact">📞 Support</a></li>
         </ul>
         <div class="sidebar-footer-info">
-            <p>App Version 1.4 (Live + UI Update)</p>
+            <p>App Version 2.0 (Live)</p>
         </div>
     </div>
 
@@ -145,7 +124,7 @@
             
             <form id="student-login-form" class="login-form">
                 <h3>Student Login</h3>
-                <input id="login-mobile" type="tel" placeholder="Mobile Number" required pattern="[0-9]{10}" title="10 Digit Mobile Number">
+                <input id="login-mobile" type="tel" placeholder="Mobile Number" required pattern="[0-9]{10}">
                 <input id="login-pass" type="password" placeholder="6-Digit Password" required maxlength="6" minlength="6" pattern="[0-9]{6}">
                 <button id="btn-login" type="submit" class="submit-btn">Login</button>
             </form>
@@ -154,7 +133,7 @@
                 <h3>Create Account</h3>
                 <input id="reg-mobile" type="tel" placeholder="Mobile Number (10 Digits)" required pattern="[0-9]{10}">
                 <input id="reg-email" type="email" placeholder="Email ID" required>
-                <input id="reg-dob" type="date" required title="Date of Birth">
+                <input id="reg-dob" type="date" required>
                 <select id="reg-state" required class="form-select">
                     <option value="" disabled selected>Select Your State</option>
                     <option value="MP">Madhya Pradesh</option>
@@ -177,7 +156,16 @@
         </div>
     </div>
 
+    <div id="course-details-modal" class="modal-overlay hidden">
+        <div class="login-box" style="padding: 15px; width: 95%; max-width: 500px;">
+            <span class="close-modal" id="close-details" style="top: 5px; right: 15px; font-size: 30px;">&times;</span>
+            <h3 id="cd-title" style="color: #0b2d63; border-bottom: 2px solid gold; padding-bottom: 10px; margin-bottom: 15px; margin-top: 15px; text-align: center;">Course</h3>
+            <div id="cd-content" style="width: 100%;">
+                </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
-  </html>
-                      
+    </html>
+                    
