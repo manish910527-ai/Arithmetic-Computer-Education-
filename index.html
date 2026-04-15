@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACE HARDA - Professional App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="splash-screen">
+        <div class="splash-content">
+            <div class="logo-container blink">
+                <img src="logo.png" alt="ACE Logo" class="app-logo">
+            </div>
+            <h1 class="glow-text">ARITHMETIC<br>COMPUTER EDUCATION</h1>
+            <h3 class="subtitle">(A C E HARDA)</h3>
+            <div class="loader-container">
+                <div class="progress-bar"></div>
+            </div>
+            <p class="loading-text">Loading Your Future...</p>
+        </div>
+        <div class="splash-footer">
+            <p><strong>ARITHMETIC COMPUTER EDUCATION</strong></p>
+            <p>📍 Opp. S.N. College | Harda | 📞 95897-69913</p>
+        </div>
+    </div>
+
+    <div id="dashboard" class="hidden">
+        <header class="dashboard-header">
+            <h2>ACE Dashboard</h2>
+            <div class="menu-icon" id="menu-icon">☰</div>
+        </header>
+        
+        <div class="grid-container">
+            <div class="card">🎓 Courses</div>
+            <div class="card">📝 Test Series</div>
+            <div class="card">✍️ Mock Tests</div>
+            <div class="card">📚 PDF Notes</div>
+            <div class="card">🏆 My Results</div>
+        </div>
+
+        <div class="banner-section">
+            <img src="banner.jpg" alt="ACE Academy Banner" class="promo-banner">
+        </div>
+
+        <div class="popular-courses">
+            <h3 class="section-title">🌟 Our Top Courses</h3>
+            <div class="course-scroll-wrapper">
+                
+                <div class="course-item">
+                    <div class="course-icon">💻</div>
+                    <h4>CPCT</h4>
+                    <p>Typing & Computer</p>
+                    <button class="view-btn">View Details</button>
+                </div>
+                
+                <div class="course-item">
+                    <div class="course-icon">📊</div>
+                    <h4>Tally ERP 9</h4>
+                    <p>Accounting Expert</p>
+                    <button class="view-btn">View Details</button>
+                </div>
+                
+                <div class="course-item">
+                    <div class="course-icon">🖥️</div>
+                    <h4>Basic Computer</h4>
+                    <p>Fundamentals</p>
+                    <button class="view-btn">View Details</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="profile-section" class="hidden">
+        <header class="dashboard-header">
+            <h2>My Profile</h2>
+            <div class="menu-icon profile-back-btn" id="back-to-dash-student">⬅ Back</div>
+        </header>
+        <div class="profile-card">
+            <div class="profile-avatar">👨‍🎓</div>
+            <h3 class="profile-name" id="prof-name">Student Name</h3>
+            <p class="profile-phone" id="prof-mobile">+91 0000000000</p>
+            <div class="profile-details">
+                <div class="detail-row">
+                    <span>State:</span>
+                    <strong id="prof-state">N/A</strong>
+                </div>
+                <div class="detail-row">
+                    <span>Unlocked Items:</span>
+                    <strong id="prof-unlocked" style="color: #4CAF50;">None</strong>
+                </div>
+            </div>
+            <button class="submit-btn logout-btn">Logout</button>
+        </div>
+    </div>
+
+    <div id="admin-panel" class="hidden">
+        <header class="dashboard-header">
+            <h2>Admin Portal</h2>
+            <div class="menu-icon profile-back-btn" id="back-to-dash-admin">⬅ Back</div>
+        </header>
+        <div class="admin-container">
+            <div class="admin-card">
+                <h3>👑 Payment Verification</h3>
+                <p>Verify UTR and Unlock Courses</p>
+                <div class="admin-form-group">
+                    <input type="tel" id="verify-mobile" placeholder="Student Mobile Number">
+                    <input type="text" id="verify-item" placeholder="Course/Test Name to Unlock">
+                    <button id="btn-verify" class="submit-btn admin-btn">Verify & Unlock</button>
+                </div>
+                <div id="verify-status" class="status-box"></div>
+            </div>
+            <button class="submit-btn logout-btn">Logout Admin</button>
+        </div>
+    </div>
+
+    <div id="sidebar-overlay" class="overlay"></div>
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h3>ACE HARDA</h3>
+            <span class="close-btn" id="close-btn">&times;</span>
+        </div>
+        <ul class="sidebar-links">
+            <li><a href="#" id="open-login-btn">🔐 Login / Register</a></li>
+            <li><a href="#dashboard">🏠 Dashboard</a></li>
+            <li><a href="#test-series">📝 Test Series</a></li>
+            <li><a href="#pdf-notes">📚 PDF Notes</a></li>
+            <li><a href="#contact">📞 Support</a></li>
+        </ul>
+        <div class="sidebar-footer-info">
+            <p>App Version 1.4 (Live + UI Update)</p>
+        </div>
+    </div>
+
+    <div id="login-modal" class="modal-overlay hidden">
+        <div class="login-box">
+            <span class="close-modal" id="close-login">&times;</span>
+            <div class="login-tabs">
+                <button class="tab-btn active" id="tab-login">Login</button>
+                <button class="tab-btn" id="tab-register">Register</button>
+                <button class="tab-btn" id="tab-admin">Admin</button>
+            </div>
+            
+            <form id="student-login-form" class="login-form">
+                <h3>Student Login</h3>
+                <input id="login-mobile" type="tel" placeholder="Mobile Number" required pattern="[0-9]{10}" title="10 Digit Mobile Number">
+                <input id="login-pass" type="password" placeholder="6-Digit Password" required maxlength="6" minlength="6" pattern="[0-9]{6}">
+                <button id="btn-login" type="submit" class="submit-btn">Login</button>
+            </form>
+
+            <form id="student-register-form" class="login-form hidden">
+                <h3>Create Account</h3>
+                <input id="reg-mobile" type="tel" placeholder="Mobile Number (10 Digits)" required pattern="[0-9]{10}">
+                <input id="reg-email" type="email" placeholder="Email ID" required>
+                <input id="reg-dob" type="date" required title="Date of Birth">
+                <select id="reg-state" required class="form-select">
+                    <option value="" disabled selected>Select Your State</option>
+                    <option value="MP">Madhya Pradesh</option>
+                    <option value="UP">Uttar Pradesh</option>
+                    <option value="MH">Maharashtra</option>
+                    <option value="RJ">Rajasthan</option>
+                    <option value="CG">Chhattisgarh</option>
+                    <option value="OTHER">Other State</option>
+                </select>
+                <input id="reg-pass" type="password" placeholder="Set 6-Digit Password" required maxlength="6" minlength="6" pattern="[0-9]{6}">
+                <button id="btn-register" type="submit" class="submit-btn" style="background-color: #28a745;">Register Now</button>
+            </form>
+            
+            <form id="admin-login-form" class="login-form hidden">
+                <h3>Admin Access</h3>
+                <input id="admin-id" type="text" placeholder="Admin ID" required>
+                <input id="admin-pass" type="password" placeholder="Secret Key" required>
+                <button id="btn-admin" type="submit" class="submit-btn admin-btn">Access Portal</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+  </html>
+                      
