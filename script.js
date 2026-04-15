@@ -1,4 +1,4 @@
-// AAPKA NAYA AUR FINAL URL
+// AAPKA NAYA API URL YAHAN HAI
 const API_URL = "https://script.google.com/macros/s/AKfycbxQX4mu_FSY5WdWUIG5gkSgBlwQygbXgTB61fp3v4MY14DmN4cpDQuU1rg1kXfgCSvw/exec";
 
 // Global Variables
@@ -40,11 +40,15 @@ function updateProfileUI() {
 
 document.addEventListener("DOMContentLoaded", function() {
     
-    // Check if user is already logged in (App Memory)
-    const storedUser = localStorage.getItem('aceUser');
-    if (storedUser) {
-        currentUser = JSON.parse(storedUser);
-        updateProfileUI();
+    // SAFE AUTO-LOGIN CHECK
+    try {
+        const storedUser = localStorage.getItem('aceUser');
+        if (storedUser) {
+            currentUser = JSON.parse(storedUser);
+            updateProfileUI();
+        }
+    } catch(e) {
+        localStorage.removeItem('aceUser');
     }
 
     // ==================== 1. SPLASH SCREEN & AUTO-LOGIN LOGIC ====================
@@ -53,15 +57,16 @@ document.addEventListener("DOMContentLoaded", function() {
         const dashboard = document.getElementById('dashboard');
         const loginModal = document.getElementById('login-modal');
         
-        if(splashScreen && dashboard) {
+        if(splashScreen && dashboard && loginModal) {
             splashScreen.style.opacity = '0';
             setTimeout(() => {
                 splashScreen.classList.add('hidden');
                 
+                // Agar baccha login nahi hai, toh seedha Login page dikhao
                 if(!currentUser) {
                     loginModal.classList.remove('hidden');
                     loginModal.style.display = 'flex';
-                    document.getElementById('close-login').style.display = 'none';
+                    document.getElementById('close-login').style.display = 'none'; // Close button hide karein
                 } else {
                     dashboard.classList.remove('hidden');
                     document.getElementById('close-login').style.display = 'block';
@@ -150,6 +155,7 @@ document.addEventListener("DOMContentLoaded", function() {
         formLogin.classList.add('hidden'); formRegister.classList.add('hidden'); formAdmin.classList.add('hidden');
         activeTab.classList.add('active'); showForm.classList.remove('hidden');
     }
+    
     tabLogin.onclick = () => switchTab(tabLogin, formLogin);
     tabRegister.onclick = () => switchTab(tabRegister, formRegister);
     tabAdmin.onclick = () => switchTab(tabAdmin, formAdmin);
@@ -207,6 +213,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     document.getElementById('back-to-dash-student').onclick = () => { profileSection.classList.add('hidden'); dashboard.classList.remove('hidden'); };
     document.getElementById('back-to-dash-admin').onclick = () => { adminPanel.classList.add('hidden'); dashboard.classList.remove('hidden'); };
+    
     document.querySelectorAll('.logout-btn').forEach(btn => {
         btn.onclick = () => {
             currentUser = null; 
@@ -257,8 +264,8 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function createItemCard(item, type) {
         let icon = type === 'video' ? '🎬' : '📄';
-        if(item.category.toLowerCase().includes('tally')) icon = '📊';
-        else if(item.category.toLowerCase().includes('basic')) icon = '🖥️';
+        if(item.category && item.category.toLowerCase().includes('tally')) icon = '📊';
+        else if(item.category && item.category.toLowerCase().includes('basic')) icon = '🖥️';
         let priceText = (item.price == 0 || item.price == "") ? '<span style="color:green;">Free</span>' : `<span style="color:red;">₹${item.price}</span>`;
         let div = document.createElement('div'); div.className = 'course-item';
         div.innerHTML = `<div class="course-icon">${icon}</div><h4>${item.name}</h4><p>${item.category} | ${priceText}</p><button class="view-btn" onclick="openCourseDetails('${item.id}', false)">View Details</button>`;
@@ -272,130 +279,130 @@ document.addEventListener("DOMContentLoaded", function() {
         return div;
     }
 
-    // ==================== 7. EXAM ENGINE CORE LOGIC ====================
-    window.startLiveExam = async function(testId, testName, testTime) {
-        document.getElementById('course-details-modal').classList.add('hidden'); 
-        document.getElementById('dashboard').classList.add('hidden'); 
-        document.getElementById('test-engine-container').classList.remove('hidden'); 
-        
-        document.getElementById('te-title').innerText = testName;
-        document.getElementById('te-qtext').innerText = "Loading exam questions from server...";
-        document.getElementById('te-options').innerHTML = '';
-        document.getElementById('te-loading').style.display = 'inline';
-        
-        currentTestId = testId;
-        currentQIndex = 0;
-        userAnswers = {};
-        clearInterval(timerInterval);
+    // ==================== 8. ADMIN UNLOCK LOGIC ====================
+    document.getElementById('btn-verify').onclick = async () => {
+        const mobile = document.getElementById('verify-mobile').value;
+        const itemId = document.getElementById('verify-item').value;
+        const statusBox = document.getElementById('verify-status');
+        const btn = document.getElementById('btn-verify');
+
+        if(mobile.length !== 10 || itemId.trim() === "") {
+            statusBox.style.color = "red"; statusBox.innerText = "❌ Enter valid mobile & Item ID."; return;
+        }
+
+        btn.innerText = "Verifying..."; statusBox.innerText = "";
+        const payload = { action: 'unlock_item', mobile: mobile, item_id: itemId };
 
         try {
-            let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'get_questions', test_id: testId }) });
+            let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
             let data = await res.json();
-            
-            document.getElementById('te-loading').style.display = 'none';
-            
-            if(data.status === 'success' && data.questions.length > 0) {
-                testQuestions = data.questions;
-                timeLeft = parseInt(testTime) * 60; 
-                startTimer();
-                renderCurrentQuestion();
+            if (data.status === 'success') {
+                statusBox.style.color = "green"; statusBox.innerText = `✅ Success! Unlocked.`;
+                document.getElementById('verify-mobile').value = ''; document.getElementById('verify-item').value = '';
             } else {
-                document.getElementById('te-qtext').innerText = "Error: No questions found in database for this test.";
+                statusBox.style.color = "red"; statusBox.innerText = "❌ " + data.message;
             }
-        } catch(e) {
-            document.getElementById('te-loading').style.display = 'none';
-            document.getElementById('te-qtext').innerText = "Network Error! Could not load questions.";
-        }
+        } catch(err) { statusBox.style.color = "red"; statusBox.innerText = "❌ Network Error!"; }
+        btn.innerText = "Verify & Unlock";
     };
+});
 
-    function startTimer() {
-        updateTimerUI();
-        timerInterval = setInterval(() => {
-            timeLeft--;
-            updateTimerUI();
-            if(timeLeft <= 0) {
-                clearInterval(timerInterval);
-                alert("⏰ Time is up! Submitting exam automatically.");
-                submitExam();
-            }
-        }, 1000);
-    }
+// ==================== 7. EXAM ENGINE CORE ====================
+// Note: Yeh functions bahar hone chahiye taaki HTML ke 'onclick' inko dhoond sakein
+window.startLiveExam = async function(testId, testName, testTime) {
+    document.getElementById('course-details-modal').classList.add('hidden'); 
+    document.getElementById('dashboard').classList.add('hidden'); 
+    document.getElementById('test-engine-container').classList.remove('hidden'); 
+    
+    document.getElementById('te-title').innerText = testName;
+    document.getElementById('te-qtext').innerText = "Loading exam questions from server...";
+    document.getElementById('te-options').innerHTML = '';
+    document.getElementById('te-loading').style.display = 'inline';
+    
+    currentTestId = testId;
+    currentQIndex = 0;
+    userAnswers = {};
+    clearInterval(timerInterval);
 
-    function updateTimerUI() {
-        let m = Math.floor(timeLeft / 60);
-        let s = timeLeft % 60;
-        document.getElementById('te-timer').innerText = `⏳ ${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
-        if(timeLeft <= 60) document.getElementById('te-timer').style.color = "red"; 
-    }
-
-    function renderCurrentQuestion() {
-        if(testQuestions.length === 0) return;
-        let q = testQuestions[currentQIndex];
+    try {
+        let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'get_questions', test_id: testId }) });
+        let data = await res.json();
         
-        document.getElementById('te-qno').innerText = `Question ${currentQIndex + 1} of ${testQuestions.length}`;
-        document.getElementById('te-qtext').innerText = `Q${currentQIndex + 1}. ${q.question}`;
+        document.getElementById('te-loading').style.display = 'none';
         
-        let optionsHtml = '';
-        let opts = [ {key:'A', val:q.optA}, {key:'B', val:q.optB}, {key:'C', val:q.optC}, {key:'D', val:q.optD} ];
-        
-        opts.forEach(opt => {
-            if(opt.val && opt.val.trim() !== "") {
-                let isChecked = userAnswers[currentQIndex] === opt.key ? 'checked' : '';
-                optionsHtml += `
-                    <label class="option-label" onclick="selectOption(${currentQIndex}, '${opt.key}')">
-                        <input type="radio" name="q_opt" class="option-input" value="${opt.key}" ${isChecked}> 
-                        <span style="font-weight:bold; color:#ce9c3b; margin-right:5px;">${opt.key}.</span> ${opt.val}
-                    </label>
-                `;
-            }
-        });
-        document.getElementById('te-options').innerHTML = optionsHtml;
-
-        document.getElementById('btn-prev').disabled = currentQIndex === 0;
-        
-        if(currentQIndex === testQuestions.length - 1) {
-            document.getElementById('btn-next').classList.add('hidden');
-            document.getElementById('btn-submit-exam').classList.remove('hidden');
+        if(data.status === 'success' && data.questions.length > 0) {
+            testQuestions = data.questions;
+            timeLeft = parseInt(testTime) * 60; 
+            window.startTimer();
+            window.renderCurrentQuestion();
         } else {
-            document.getElementById('btn-next').classList.remove('hidden');
-            document.getElementById('btn-next').disabled = false;
-            document.getElementById('btn-submit-exam').classList.add('hidden');
+            document.getElementById('te-qtext').innerText = "Error: No questions found in database for this test.";
         }
+    } catch(e) {
+        document.getElementById('te-loading').style.display = 'none';
+        document.getElementById('te-qtext').innerText = "Network Error! Could not load questions.";
     }
+};
 
-    window.selectOption = function(qIndex, answerKey) {
-        userAnswers[qIndex] = answerKey;
-        const radios = document.getElementsByName('q_opt');
-        for(let i=0; i<radios.length; i++){ if(radios[i].value === answerKey) radios[i].checked = true; }
-    };
+window.startTimer = function() {
+    window.updateTimerUI();
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        window.updateTimerUI();
+        if(timeLeft <= 0) {
+            clearInterval(timerInterval);
+            alert("⏰ Time is up! Submitting exam automatically.");
+            window.submitExam();
+        }
+    }, 1000);
+};
 
-    document.getElementById('btn-next').onclick = () => { if(currentQIndex < testQuestions.length - 1) { currentQIndex++; renderCurrentQuestion(); } };
-    document.getElementById('btn-prev').onclick = () => { if(currentQIndex > 0) { currentQIndex--; renderCurrentQuestion(); } };
-    document.getElementById('btn-submit-exam').onclick = () => { if(confirm("Are you sure you want to submit the exam?")) submitExam(); };
+window.updateTimerUI = function() {
+    let m = Math.floor(timeLeft / 60);
+    let s = timeLeft % 60;
+    document.getElementById('te-timer').innerText = `⏳ ${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
+    if(timeLeft <= 60) document.getElementById('te-timer').style.color = "red"; 
+};
 
-    function submitExam() {
-        clearInterval(timerInterval);
-        document.getElementById('test-engine-container').classList.add('hidden');
-        
-        let correct = 0;
-        let wrong = 0;
-        
-        testQuestions.forEach((q, index) => {
-            let uAns = userAnswers[index];
-            if(uAns) {
-                if(uAns.trim().toUpperCase() === q.answer.toString().trim().toUpperCase()) { correct++; } 
-                else { wrong++; }
-            }
-        });
+window.renderCurrentQuestion = function() {
+    if(testQuestions.length === 0) return;
+    let q = testQuestions[currentQIndex];
+    
+    document.getElementById('te-qno').innerText = `Question ${currentQIndex + 1} of ${testQuestions.length}`;
+    document.getElementById('te-qtext').innerText = `Q${currentQIndex + 1}. ${q.question}`;
+    
+    let optionsHtml = '';
+    let opts = [ {key:'A', val:q.optA}, {key:'B', val:q.optB}, {key:'C', val:q.optC}, {key:'D', val:q.optD} ];
+    
+    opts.forEach(opt => {
+        if(opt.val && opt.val.trim() !== "") {
+            let isChecked = userAnswers[currentQIndex] === opt.key ? 'checked' : '';
+            optionsHtml += `
+                <label class="option-label" onclick="selectOption(${currentQIndex}, '${opt.key}')">
+                    <input type="radio" name="q_opt" class="option-input" value="${opt.key}" ${isChecked}> 
+                    <span style="font-weight:bold; color:#ce9c3b; margin-right:5px;">${opt.key}.</span> ${opt.val}
+                </label>
+            `;
+        }
+    });
+    document.getElementById('te-options').innerHTML = optionsHtml;
 
-        document.getElementById('tr-score').innerText = `${correct} / ${testQuestions.length}`;
-        document.getElementById('tr-correct').innerText = `✅ Correct: ${correct}`;
-        document.getElementById('tr-wrong').innerText = `❌ Wrong: ${wrong}`;
-        
-        document.getElementById('test-result-modal').classList.remove('hidden');
-        document.getElementById('test-result-modal').style.display = 'flex';
+    document.getElementById('btn-prev').disabled = currentQIndex === 0;
+    
+    if(currentQIndex === testQuestions.length - 1) {
+        document.getElementById('btn-next').classList.add('hidden');
+        document.getElementById('btn-submit-exam').classList.remove('hidden');
+    } else {
+        document.getElementById('btn-next').classList.remove('hidden');
+        document.getElementById('btn-next').disabled = false;
+        document.getElementById('btn-submit-exam').classList.add('hidden');
     }
+};
 
-    document.getElementById('btn-close-result').onclick = () => {
-        document.getElementById('test-result-modal').classList.add('hidden');
-        document.getElementById('dashboard').classList.rem
+window.selectOption = function(qIndex, answerKey) {
+    userAnswers[qIndex] = answerKey;
+    const radios = document.getElementsByName('q_opt');
+    for(let i=0; i<radios.length; i++){ if(radios[i].value === answerKey) radios[i].checked = true; }
+};
+
+document.getElementById('btn-next').onclick = () => { if(currentQIndex < testQuestions.length - 1) { cur
