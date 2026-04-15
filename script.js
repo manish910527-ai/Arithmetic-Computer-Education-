@@ -1,4 +1,4 @@
-// AAPKA LATEST API URL
+// AAPKA FINAL API URL
 const API_URL = "https://script.google.com/macros/s/AKfycbxQX4mu_FSY5WdWUIG5gkSgBlwQygbXgTB61fp3v4MY14DmN4cpDQuU1rg1kXfgCSvw/exec";
 
 // Global Memory
@@ -41,6 +41,13 @@ function updateProfileUI() {
 
 document.addEventListener("DOMContentLoaded", function() {
     
+    // ================= SMART APK BANNER HIDER =================
+    const isWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)|Android.*Version\/[\d\.]+.*Chrome\/[0-9]+Mobile/i.test(navigator.userAgent) || window.matchMedia('(display-mode: standalone)').matches;
+    if (isWebView) {
+        const banner = document.getElementById('app-download-banner');
+        if (banner) banner.style.display = 'none';
+    }
+
     // Auto-Login Check
     const storedUser = localStorage.getItem('aceUser');
     if (storedUser) {
@@ -175,7 +182,7 @@ document.addEventListener("DOMContentLoaded", function() {
             try {
                 let res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
                 let data = await res.json();
-                if (data.status === 'success') { alert("Success! Login now."); switchTab(tabLogin, formLogin); } 
+                if (data.status === 'success') { alert("Success! Login now."); switchTab(tabLogin, formLogin); formRegister.reset(); } 
                 else { alert("Error: " + data.message); }
             } catch(err) { alert("Network Error."); }
             btn.innerText = "Register Now";
@@ -196,6 +203,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     updateProfileUI();
                     document.getElementById('login-modal').classList.add('hidden');
                     document.getElementById('dashboard').classList.remove('hidden');
+                    formLogin.reset();
                 } else { alert("Error: " + data.message); }
             } catch(err) { alert("Error connecting to server."); }
             btn.innerText = "Login";
@@ -213,6 +221,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (data.status === 'success') {
                     document.getElementById('login-modal').classList.add('hidden');
                     document.getElementById('admin-panel').classList.remove('hidden');
+                    formAdmin.reset();
                 } else { alert("Admin Error: " + data.message); }
             } catch(err) { alert("Network Error."); }
             btn.innerText = "Access Portal";
@@ -314,35 +323,71 @@ function startTimer() {
 }
 
 function renderQuestion() {
+    if (testQuestions.length === 0) return;
     let q = testQuestions[currentQIndex];
     document.getElementById('te-qno').innerText = `Question ${currentQIndex+1} of ${testQuestions.length}`;
     document.getElementById('te-qtext').innerText = q.question;
     
     let html = '';
     [{k:'A',v:q.optA},{k:'B',v:q.optB},{k:'C',v:q.optC},{k:'D',v:q.optD}].forEach(o => {
-        if(o.v) html += `<label class="option-label" onclick="selectOption(${currentQIndex},'${o.k}')"><input type="radio" name="opt" value="${o.k}" ${userAnswers[currentQIndex]==o.k?'checked':''}> ${o.k}. ${o.v}</label>`;
+        if(o.v) {
+            let isChecked = userAnswers[currentQIndex] === o.k ? 'checked' : '';
+            html += `<label class="option-label" onclick="selectOption(${currentQIndex},'${o.k}')"><input type="radio" name="opt" value="${o.k}" ${isChecked}> <span style="color:#ce9c3b; font-weight:bold;">${o.k}.</span> ${o.v}</label>`;
+        }
     });
     document.getElementById('te-options').innerHTML = html;
-    document.getElementById('btn-prev').disabled = currentQIndex === 0;
-    document.getElementById('btn-next').classList.toggle('hidden', currentQIndex === testQuestions.length-1);
+    
+    // Yahan Button Disable/Enable theek kar diya gaya hai
+    document.getElementById('btn-prev').disabled = (currentQIndex === 0);
+    
+    let btnNext = document.getElementById('btn-next');
+    btnNext.disabled = false; // Next button ko unlock rakha hai
+    btnNext.classList.toggle('hidden', currentQIndex === testQuestions.length-1);
+    
     document.getElementById('btn-submit-exam').classList.toggle('hidden', currentQIndex !== testQuestions.length-1);
 }
 
-window.selectOption = (idx, val) => { userAnswers[idx] = val; };
-document.getElementById('btn-next').onclick = () => { currentQIndex++; renderQuestion(); };
-document.getElementById('btn-prev').onclick = () => { currentQIndex--; renderQuestion(); };
-document.getElementById('btn-submit-exam').onclick = () => { if(confirm("Submit Exam?")) submitExam(); };
+window.selectOption = (idx, val) => { userAnswers[idx] = val; renderQuestion(); };
+
+// Safe event listeners for buttons
+document.addEventListener("DOMContentLoaded", function() {
+    if(document.getElementById('btn-next')) {
+        document.getElementById('btn-next').onclick = () => { 
+            if(currentQIndex < testQuestions.length - 1) {
+                currentQIndex++; renderQuestion(); 
+            }
+        };
+    }
+    if(document.getElementById('btn-prev')) {
+        document.getElementById('btn-prev').onclick = () => { 
+            if(currentQIndex > 0) {
+                currentQIndex--; renderQuestion(); 
+            }
+        };
+    }
+    if(document.getElementById('btn-submit-exam')) {
+        document.getElementById('btn-submit-exam').onclick = () => { 
+            if(confirm("Submit Exam?")) submitExam(); 
+        };
+    }
+    if(document.getElementById('btn-close-result')) {
+        document.getElementById('btn-close-result').onclick = () => location.reload();
+    }
+});
 
 function submitExam() {
     clearInterval(timerInterval);
     let correct = 0;
     testQuestions.forEach((q, i) => { if(userAnswers[i] === q.answer) correct++; });
+    
     document.getElementById('tr-score').innerText = `${correct} / ${testQuestions.length}`;
+    document.getElementById('tr-correct').innerText = `✅ Correct: ${correct}`;
+    document.getElementById('tr-wrong').innerText = `❌ Wrong: ${testQuestions.length - correct}`;
+    
     document.getElementById('test-engine-container').classList.add('hidden');
     document.getElementById('test-result-modal').classList.remove('hidden');
     document.getElementById('test-result-modal').style.display = 'flex';
 }
-document.getElementById('btn-close-result').onclick = () => location.reload();
 
 // VIEW DETAILS & UPI
 window.openCourseDetails = function(id, isTest) {
@@ -351,17 +396,24 @@ window.openCourseDetails = function(id, isTest) {
 
     if (item.price > 0 && (!currentUser || !currentUser.unlocked || !currentUser.unlocked.includes(id))) {
         const upi = `upi://pay?pa=9589769913@ybl&pn=Arithmetic%20Computer&am=${item.price}&cu=INR`;
-        document.getElementById('cd-content').innerHTML = `<div style="text-align:center;padding:20px"><h2>🔒 Premium</h2><p>Fee: ₹${item.price}</p><a href="${upi}" style="display:block;background:#28a745;color:#fff;padding:12px;border-radius:8px;text-decoration:none">Pay via UPI App</a><p style="font-size:12px;margin-top:10px">Send screenshot to 9589769913 to unlock.</p></div>`;
+        document.getElementById('cd-content').innerHTML = `
+            <div style="text-align:center;padding:20px">
+                <h2 style="font-size:40px; margin-bottom:10px;">🔒</h2>
+                <h3 style="color:#d32f2f; margin-bottom:10px;">Premium Content</h3>
+                <p style="color:#333; margin-bottom:15px; font-size: 16px;">Fee: <strong>₹${item.price}</strong></p>
+                <a href="${upi}" style="display:block;background:#28a745;color:#fff;padding:12px;border-radius:8px;text-decoration:none;margin-bottom:15px;box-shadow: 0 4px 6px rgba(0,0,0,0.2);">Pay ₹${item.price} via UPI App</a>
+                <p style="font-size:13px;background:#f9f9f9;padding:10px;border-radius:5px;color:#666;">Send screenshot to Admin WhatsApp (+91 9589769913) after payment.</p>
+            </div>`;
     } else {
         if(isTest) {
-            document.getElementById('cd-content').innerHTML = `<div style="text-align:center;padding:20px"><h2>📝 ${item.name}</h2><p>${item.questions} Qs | ${item.time} Mins</p><button class="submit-btn" style="background:#ce9c3b;color:#000" onclick="startLiveExam('${item.id}','${item.name}',${item.time})">Start Exam Now</button></div>`;
+            document.getElementById('cd-content').innerHTML = `
+            <div style="text-align:center;padding:20px">
+                <h2 style="font-size:40px; margin-bottom:10px;">📝</h2>
+                <h3 style="color:#0b2d63; margin-bottom:10px;">${item.name}</h3>
+                <p style="margin-bottom:15px; color:#333; font-weight: bold;">${item.questions} Qs | ${item.time} Mins</p>
+                <button class="submit-btn" style="background:#ce9c3b;color:#0b2d63;margin-top:15px;font-weight:bold;" onclick="startLiveExam('${item.id}','${item.name}',${item.time})">Start Exam Now</button>
+            </div>`;
         } else {
-            if(item.type.toLowerCase()==='video') document.getElementById('cd-content').innerHTML = `<iframe width="100%" height="220" src="${getEmbedUrl(item.link)}" frameborder="0" allowfullscreen></iframe>`;
-            else document.getElementById('cd-content').innerHTML = `<div style="text-align:center;padding:20px"><h2>📄 PDF Ready</h2><a href="${item.link}" target="_blank" class="submit-btn">Open PDF</a></div>`;
-        }
-    }
-    document.getElementById('cd-title').innerText = item.name;
-    document.getElementById('course-details-modal').classList.remove('hidden');
-    document.getElementById('course-details-modal').style.display = 'flex';
-};
-            
+            let cType = item.type ? item.type.toLowerCase() : '';
+            if (cType === 'video') { 
+                document.getElementById('cd-content').innerHTML = `<iframe w
