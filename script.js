@@ -405,4 +405,91 @@ window.selectOption = function(qIndex, answerKey) {
     for(let i=0; i<radios.length; i++){ if(radios[i].value === answerKey) radios[i].checked = true; }
 };
 
-document.getElementById('btn-next').onclick = () => { if(currentQIndex < testQuestions.length - 1) { cur
+document.getElementById('btn-next').onclick = () => { if(currentQIndex < testQuestions.length - 1) { currentQIndex++; window.renderCurrentQuestion(); } };
+document.getElementById('btn-prev').onclick = () => { if(currentQIndex > 0) { currentQIndex--; window.renderCurrentQuestion(); } };
+document.getElementById('btn-submit-exam').onclick = () => { if(confirm("Are you sure you want to submit the exam?")) window.submitExam(); };
+
+window.submitExam = function() {
+    clearInterval(timerInterval);
+    document.getElementById('test-engine-container').classList.add('hidden');
+    
+    let correct = 0;
+    let wrong = 0;
+    
+    testQuestions.forEach((q, index) => {
+        let uAns = userAnswers[index];
+        if(uAns) {
+            if(uAns.trim().toUpperCase() === q.answer.toString().trim().toUpperCase()) { correct++; } 
+            else { wrong++; }
+        }
+    });
+
+    document.getElementById('tr-score').innerText = `${correct} / ${testQuestions.length}`;
+    document.getElementById('tr-correct').innerText = `✅ Correct: ${correct}`;
+    document.getElementById('tr-wrong').innerText = `❌ Wrong: ${wrong}`;
+    
+    document.getElementById('test-result-modal').classList.remove('hidden');
+    document.getElementById('test-result-modal').style.display = 'flex';
+};
+
+document.getElementById('btn-close-result').onclick = () => {
+    document.getElementById('test-result-modal').classList.add('hidden');
+    document.getElementById('dashboard').classList.remove('hidden');
+};
+
+// ==================== 9. DETAILS MODAL LOGIC ====================
+window.openCourseDetails = function(itemId, isTest) {
+    let item = isTest ? fetchedData.tests.find(t => t.id === itemId) : fetchedData.courses.find(c => c.id === itemId);
+    if(!item) return;
+
+    let isPremium = item.price > 0;
+    let isUnlocked = false;
+
+    if (isPremium) {
+        if (!currentUser) { alert("This is Premium Content. Please Login or Register first."); return; }
+        if (currentUser.unlocked && currentUser.unlocked.toString().indexOf(itemId) !== -1) { isUnlocked = true; }
+    }
+
+    const modal = document.getElementById('course-details-modal');
+    const title = document.getElementById('cd-title');
+    const content = document.getElementById('cd-content');
+
+    title.innerText = item.name;
+
+    if (isPremium && !isUnlocked) {
+        const upiLink = `upi://pay?pa=9589769913@ybl&pn=Arithmetic%20Computer%20Education&am=${item.price}&cu=INR&tn=Course%20Purchase`;
+        content.innerHTML = `
+            <div style="text-align:center; padding: 20px;">
+                <h2 style="font-size:40px; margin-bottom:10px;">🔒</h2>
+                <h3 style="color:#d32f2f; margin-bottom:10px;">Premium Content</h3>
+                <p style="color:#333; margin-bottom:15px; font-size: 16px;">Course Fee: <strong>₹${item.price}</strong></p>
+                <a href="${upiLink}" style="display:block; background:#28a745; color:white; padding:12px; border-radius:8px; text-decoration:none; font-weight:bold; margin-bottom:15px; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
+                    Pay ₹${item.price} via UPI App
+                </a>
+                <p style="font-size:13px; color:#666; background:#f9f9f9; padding: 10px; border-radius: 5px;">
+                    Send a screenshot to Admin WhatsApp (+91 9589769913) after payment to unlock immediately.
+                </p>
+            </div>`;
+    } else {
+        if(isTest) {
+            content.innerHTML = `
+            <div style="text-align:center; padding: 20px;">
+                <h2 style="font-size:40px; margin-bottom:10px;">📝</h2>
+                <p style="margin-bottom:15px; color:#0b2d63; font-weight: bold;">
+                    Questions: ${item.questions} <br> Time Limit: ${item.time} Mins
+                </p>
+                <button class="submit-btn" style="background:#ce9c3b; color:#0b2d63;" onclick="startLiveExam('${item.id}', '${item.name}', '${item.time}')">Start Exam Now</button>
+            </div>`;
+        } else {
+            let cType = item.type ? item.type.toLowerCase() : '';
+            if (cType === 'video') { 
+                let safeUrl = getEmbedUrl(item.link); 
+                content.innerHTML = `<iframe width="100%" height="220" src="${safeUrl}" frameborder="0" allowfullscreen style="border-radius:10px; border: 1px solid #ccc;"></iframe>`; 
+            } 
+            else if (cType === 'pdf') { 
+                content.innerHTML = `<div style="text-align:center; padding: 20px;"><h2 style="font-size:40px; margin-bottom:10px;">📄</h2><a href="${item.link}" target="_blank" class="submit-btn" style="display:inline-block; width:auto; padding:10px 20px;">View PDF</a></div>`; 
+            }
+        }
+    }
+    modal.style.display = 'flex'; modal.classList.remove('hidden');
+};
