@@ -33,23 +33,39 @@
         </header>
         
         <div class="grid-container">
-            <div class="card">🎓 Courses</div>
-            <div class="card">📝 Test Series</div>
-            <div class="card">✍️ Mock Tests</div>
-            <div class="card">📚 PDF Notes</div>
-            <div class="card">🏆 My Results</div>
+            <div class="card" id="nav-courses">🎓 Courses</div>
+            <div class="card" id="nav-tests">📝 Test Series</div>
+            <div class="card" id="nav-mocks">✍️ Mock Tests</div>
+            <div class="card" id="nav-pdfs">📚 PDF Notes</div>
+            <div class="card" id="nav-results">🏆 My Results</div>
         </div>
 
         <div class="banner-section">
             <img src="banner.jpg" alt="ACE Academy Banner" class="promo-banner">
         </div>
 
-        <div class="popular-courses">
-            <h3 class="section-title">🌟 Our Top Courses</h3>
-            <div class="course-scroll-wrapper" id="top-courses-wrapper">
-                <p style="color: #aebcd0; font-size: 14px; padding-left: 5px;">Fetching live content...</p>
+        <div class="popular-courses" id="courses-section">
+            <h3 class="section-title">🎬 Video Courses</h3>
+            <div class="course-scroll-wrapper" id="video-courses-wrapper">
+                <p style="color: #aebcd0; font-size: 14px; padding-left: 5px;">Fetching video courses...</p>
             </div>
         </div>
+
+        <div class="popular-courses" id="pdfs-section">
+            <h3 class="section-title">📚 PDF Notes Vault</h3>
+            <div class="course-scroll-wrapper" id="pdf-notes-wrapper">
+                <p style="color: #aebcd0; font-size: 14px; padding-left: 5px;">Fetching PDF notes...</p>
+            </div>
+        </div>
+
+        <div class="popular-courses" id="tests-section">
+            <h3 class="section-title">📝 Mock Tests & Series</h3>
+            <div class="course-scroll-wrapper" id="test-series-wrapper">
+                <p style="color: #aebcd0; font-size: 14px; padding-left: 5px;">Fetching live tests...</p>
+            </div>
+        </div>
+        
+        <div style="height: 40px;"></div>
     </div>
 
     <div id="profile-section" class="hidden">
@@ -104,12 +120,12 @@
         <ul class="sidebar-links">
             <li><a href="#" id="open-login-btn">🔐 Login / Register</a></li>
             <li><a href="#dashboard">🏠 Dashboard</a></li>
-            <li><a href="#test-series">📝 Test Series</a></li>
-            <li><a href="#pdf-notes">📚 PDF Notes</a></li>
+            <li><a href="#" id="side-nav-tests">📝 Test Series</a></li>
+            <li><a href="#" id="side-nav-pdfs">📚 PDF Notes</a></li>
             <li><a href="#contact">📞 Support</a></li>
         </ul>
         <div class="sidebar-footer-info">
-            <p>App Version 2.0 (Live)</p>
+            <p>App Version 3.5 (UPI & Auto-Login)</p>
         </div>
     </div>
 
@@ -159,13 +175,55 @@
     <div id="course-details-modal" class="modal-overlay hidden">
         <div class="login-box" style="padding: 15px; width: 95%; max-width: 500px;">
             <span class="close-modal" id="close-details" style="top: 5px; right: 15px; font-size: 30px;">&times;</span>
-            <h3 id="cd-title" style="color: #0b2d63; border-bottom: 2px solid gold; padding-bottom: 10px; margin-bottom: 15px; margin-top: 15px; text-align: center;">Course</h3>
+            <h3 id="cd-title" style="color: #0b2d63; border-bottom: 2px solid gold; padding-bottom: 10px; margin-bottom: 15px; margin-top: 15px; text-align: center;">Details</h3>
             <div id="cd-content" style="width: 100%;">
+            </div>
+        </div>
+    </div>
+
+    <div id="test-engine-container" class="hidden">
+        <div class="test-header">
+            <h3 id="te-title" style="font-size: 16px; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:65%;">Exam</h3>
+            <div class="timer-box" id="te-timer">⏳ 00:00</div>
+        </div>
+        
+        <div class="test-body">
+            <div class="progress-info">
+                <span id="te-qno">Question 1 of 10</span>
+                <span id="te-loading" style="color:red; display:none; font-size: 12px;">Fetching questions...</span>
+            </div>
+            
+            <div class="question-card" id="te-qtext">
+                Loading your exam questions... Please wait.
+            </div>
+
+            <div class="options-container" id="te-options">
+            </div>
+        </div>
+
+        <div class="test-footer">
+            <button class="nav-btn" id="btn-prev" disabled>⬅ Prev</button>
+            <button class="nav-btn submit-test-btn hidden" id="btn-submit-exam">Submit</button>
+            <button class="nav-btn" id="btn-next" disabled>Next ➡</button>
+        </div>
+    </div>
+
+    <div id="test-result-modal" class="modal-overlay hidden">
+        <div class="login-box" style="text-align: center; width: 90%; max-width: 400px;">
+            <h2 style="font-size: 60px; margin-bottom: 10px;">🏆</h2>
+            <h3 style="color: #0b2d63; margin-bottom: 10px;">Exam Completed!</h3>
+            <div style="background: #f0f4ff; border: 2px dashed #0b2d63; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                <p style="font-size: 16px; margin-bottom: 5px; color:#333;">Your Final Score</p>
+                <p id="tr-score" style="color: #28a745; font-size: 32px; font-weight:bold; margin-bottom: 10px;">0 / 0</p>
+                <div style="display:flex; justify-content:space-around; font-size:14px; font-weight:bold;">
+                    <span style="color:green;" id="tr-correct">✅ 0</span>
+                    <span style="color:red;" id="tr-wrong">❌ 0</span>
                 </div>
+            </div>
+            <button class="submit-btn" id="btn-close-result" style="background:#ce9c3b; color:#0b2d63;">Back to Dashboard</button>
         </div>
     </div>
 
     <script src="script.js"></script>
 </body>
-    </html>
-                    
+</html>
