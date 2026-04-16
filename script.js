@@ -11,7 +11,6 @@ let userAnswers = {};
 let timerInterval = null;
 let timeLeft = 0; 
 
-// Helper: YouTube Fix
 function getEmbedUrl(url) {
     if (!url) return "";
     try {
@@ -21,7 +20,6 @@ function getEmbedUrl(url) {
     return url;
 }
 
-// UI Update Function
 function updateProfileUI() {
     if(!currentUser) return;
     const ids = { 'prof-name': currentUser.name, 'prof-mobile': "+91 "+currentUser.mobile, 'prof-state': currentUser.state, 'prof-unlocked': currentUser.unlocked || "None" };
@@ -35,7 +33,7 @@ function updateProfileUI() {
 
 document.addEventListener("DOMContentLoaded", function() {
     
-    // 1. SPLASH SCREEN REMOVER (Isse bahar rakha hai taaki ye har haal mein chale)
+    // Splash Screen
     const removeSplash = () => {
         const splash = document.getElementById('splash-screen');
         const dash = document.getElementById('dashboard');
@@ -55,11 +53,9 @@ document.addEventListener("DOMContentLoaded", function() {
             }, 600);
         }
     };
-    
-    // 3.5 seconds baad splash screen ko hatane ka order
     setTimeout(removeSplash, 3500);
 
-    // 2. AUTO-LOGIN
+    // Auto Login
     try {
         const stored = localStorage.getItem('aceUser');
         if(stored) {
@@ -68,13 +64,11 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     } catch(e) { localStorage.removeItem('aceUser'); }
 
-    // 3. FETCH CONTENT
     fetchLiveContent();
 
-    // 4. NAVIGATION & BUTTONS
+    // Navigations (Dashboard Cards)
     const navIds = ['nav-courses', 'nav-pdfs', 'nav-tests', 'nav-mocks'];
     const sections = ['courses-section', 'pdfs-section', 'tests-section', 'tests-section'];
-    
     navIds.forEach((id, index) => {
         let el = document.getElementById(id);
         if(el) el.onclick = () => {
@@ -82,6 +76,14 @@ document.addEventListener("DOMContentLoaded", function() {
             if(sec) window.scrollTo({ top: sec.offsetTop - 70, behavior: 'smooth' });
         };
     });
+
+    // YouTube Click Event
+    const ytBtn = document.getElementById('nav-youtube');
+    if(ytBtn) {
+        ytBtn.onclick = () => {
+            window.open('https://youtube.com/@arthmeticcomputereducation?si=A2vbUDLIIGjSf2Or', '_blank');
+        };
+    }
 
     if(document.getElementById('nav-results')) {
         document.getElementById('nav-results').onclick = () => {
@@ -92,7 +94,7 @@ document.addEventListener("DOMContentLoaded", function() {
         };
     }
 
-    // Modal Controls
+    // Sidebar & Overlays Setup
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebar-overlay');
     if(document.getElementById('menu-icon')) {
@@ -111,7 +113,92 @@ document.addEventListener("DOMContentLoaded", function() {
     if(document.getElementById('close-btn')) document.getElementById('close-btn').onclick = window.closeAll;
     if(overlay) overlay.onclick = window.closeAll;
 
-    // Login Form Tabs Logic
+    // ==========================================
+    // NAYA FIX: SIDEBAR LINKS CLICK LOGIC
+    // ==========================================
+    
+    // 1. Sidebar Login / Profile Button
+    const openLoginBtn = document.getElementById('open-login-btn');
+    if(openLoginBtn) {
+        openLoginBtn.onclick = (e) => {
+            e.preventDefault();
+            window.closeAll(); // Click karte hi sidebar band ho jayega
+            if(currentUser) {
+                document.getElementById('dashboard').classList.add('hidden');
+                document.getElementById('profile-section').classList.remove('hidden');
+            } else {
+                const loginModal = document.getElementById('login-modal');
+                loginModal.classList.remove('hidden');
+                loginModal.style.display = 'flex';
+                // Modal mein close button show karna (agar pehle hide kiya ho)
+                if(document.getElementById('close-login')) document.getElementById('close-login').style.display = 'block';
+            }
+        };
+    }
+
+    // 2. Sidebar Dashboard Button
+    const sideDashBtn = document.querySelector('a[href="#dashboard"]');
+    if(sideDashBtn) {
+        sideDashBtn.onclick = (e) => {
+            e.preventDefault();
+            window.closeAll();
+            document.getElementById('profile-section').classList.add('hidden');
+            document.getElementById('admin-panel').classList.add('hidden');
+            document.getElementById('test-engine-container').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+    }
+
+    // 3. Sidebar Test Series Button
+    const sideTestBtn = document.getElementById('side-nav-tests');
+    if(sideTestBtn) {
+        sideTestBtn.onclick = (e) => {
+            e.preventDefault();
+            window.closeAll();
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('profile-section').classList.add('hidden');
+            const sec = document.getElementById('tests-section');
+            if(sec) window.scrollTo({ top: sec.offsetTop - 70, behavior: 'smooth' });
+        };
+    }
+
+    // 4. Sidebar PDF Notes Button
+    const sidePdfBtn = document.getElementById('side-nav-pdfs');
+    if(sidePdfBtn) {
+        sidePdfBtn.onclick = (e) => {
+            e.preventDefault();
+            window.closeAll();
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('profile-section').classList.add('hidden');
+            const sec = document.getElementById('pdfs-section');
+            if(sec) window.scrollTo({ top: sec.offsetTop - 70, behavior: 'smooth' });
+        };
+    }
+
+    // ==========================================
+
+    // PROPER MODAL CLOSE (Cross Button)
+    const closeDetailsBtn = document.getElementById('close-details');
+    if(closeDetailsBtn) {
+        closeDetailsBtn.onclick = () => {
+            const modal = document.getElementById('course-details-modal');
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+            document.getElementById('cd-content').innerHTML = ''; 
+        };
+    }
+    
+    const closeLoginBtn = document.getElementById('close-login');
+    if(closeLoginBtn) {
+        closeLoginBtn.onclick = () => {
+            const modal = document.getElementById('login-modal');
+            modal.classList.add('hidden');
+            modal.style.display = 'none';
+        }
+    }
+
+    // Auth Forms Tabs
     const tabs = ['tab-login', 'tab-register', 'tab-admin'];
     const forms = ['student-login-form', 'student-register-form', 'admin-login-form'];
     tabs.forEach((tabId, i) => {
@@ -124,7 +211,7 @@ document.addEventListener("DOMContentLoaded", function() {
         };
     });
 
-    // 5. LOGIN ACTION
+    // Login Submission
     const loginForm = document.getElementById('student-login-form');
     if(loginForm) {
         loginForm.onsubmit = async (e) => {
@@ -150,28 +237,23 @@ document.addEventListener("DOMContentLoaded", function() {
         };
     }
     
-    // Admin Unlock Button
-    const verifyBtn = document.getElementById('btn-verify');
-    if(verifyBtn) {
-        verifyBtn.onclick = async () => {
-            const mobile = document.getElementById('verify-mobile').value;
-            const item = document.getElementById('verify-item').value;
-            if(mobile.length !== 10) return alert("Enter 10 digit mobile");
-            verifyBtn.innerText = "Processing...";
-            try {
-                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'unlock_item', mobile, item_id: item }) });
-                const data = await res.json();
-                alert(data.message);
-            } catch(e) { alert("Failed"); }
-            verifyBtn.innerText = "Verify & Unlock";
+    // Back Buttons in Profile/Admin
+    document.getElementById('back-to-dash-student').onclick = () => {
+        document.getElementById('profile-section').classList.add('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
+    };
+    
+    if(document.getElementById('back-to-dash-admin')){
+        document.getElementById('back-to-dash-admin').onclick = () => {
+            document.getElementById('admin-panel').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
         };
     }
 
-    // Logout
     document.querySelectorAll('.logout-btn').forEach(b => b.onclick = () => { localStorage.clear(); location.reload(); });
 });
 
-// 6. CONTENT LOADER
+// Content Fetcher
 async function fetchLiveContent() {
     try {
         const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'get_content' }) });
@@ -205,7 +287,7 @@ function renderUI() {
     });
 }
 
-// 7. TEST ENGINE
+// ================= TEST ENGINE =================
 window.openDetails = function(id, isTest) {
     const item = isTest ? fetchedData.tests.find(x=>x.id===id) : fetchedData.courses.find(x=>x.id===id);
     if(!item) return;
@@ -257,8 +339,14 @@ function renderQ() {
         if(o.v) h += `<label class="option-label" onclick="setAns('${o.k}')"><input type="radio" name="opt" ${userAnswers[currentQIndex]===o.k?'checked':''}> ${o.k}. ${o.v}</label>`;
     });
     document.getElementById('te-options').innerHTML = h;
+    
+    // Proper Next/Prev disable logic
     document.getElementById('btn-prev').disabled = currentQIndex === 0;
-    document.getElementById('btn-next').classList.toggle('hidden', currentQIndex === testQuestions.length-1);
+    
+    const btnNext = document.getElementById('btn-next');
+    btnNext.classList.toggle('hidden', currentQIndex === testQuestions.length-1);
+    btnNext.disabled = false; 
+
     document.getElementById('btn-submit-exam').classList.toggle('hidden', currentQIndex !== testQuestions.length-1);
 }
 
@@ -267,13 +355,32 @@ document.getElementById('btn-next').onclick = () => { currentQIndex++; renderQ()
 document.getElementById('btn-prev').onclick = () => { currentQIndex--; renderQ(); };
 document.getElementById('btn-submit-exam').onclick = submitExam;
 
+// PROPER EXIT TEST LOGIC
+document.getElementById('exit-test-btn').onclick = () => {
+    if(confirm("Kya aap test se bahar aana chahte hain? Aapki progress save nahi hogi.")) {
+        clearInterval(timerInterval);
+        document.getElementById('test-engine-container').classList.add('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
+        currentQIndex = 0;
+        userAnswers = {};
+    }
+};
+
 function submitExam() {
     clearInterval(timerInterval);
     let score = 0;
     testQuestions.forEach((q, i) => { if(userAnswers[i] === q.answer) score++; });
+    
     document.getElementById('tr-score').innerText = `${score} / ${testQuestions.length}`;
     document.getElementById('test-engine-container').classList.add('hidden');
     document.getElementById('test-result-modal').classList.remove('hidden');
     document.getElementById('test-result-modal').style.display = 'flex';
 }
-document.getElementById('btn-close-result').onclick = () => location.reload();
+
+// Result ke baad modal close karke dashboard me bhejna
+document.getElementById('btn-close-result').onclick = () => {
+    document.getElementById('test-result-modal').classList.add('hidden');
+    document.getElementById('test-result-modal').style.display = 'none';
+    document.getElementById('dashboard').classList.remove('hidden');
+};
+                                                                     
