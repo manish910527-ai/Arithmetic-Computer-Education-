@@ -14,7 +14,7 @@
                 <img src="logo.png" alt="ACE Logo" class="app-logo">
             </div>
             <h1 class="glow-text">ARITHMETIC<br>COMPUTER EDUCATION</h1>
-            <h3 class="subtitle">(A C E HARDA)</h3>
+            <h3 class="subtitle">(HARDA)</h3>
             <div class="loader-container">
                 <div class="progress-bar"></div>
             </div>
@@ -22,7 +22,7 @@
         </div>
         <div class="splash-footer">
             <p><strong>ARITHMETIC COMPUTER EDUCATION</strong></p>
-            <p>📍 Opp. S.N. College | Harda | 📞 95897-69913</p>
+            <p>📍 Harda | 📞 95897-69913</p>
         </div>
     </div>
 
@@ -38,6 +38,7 @@
             <div class="card" id="nav-mocks">✍️ Mock Tests</div>
             <div class="card" id="nav-pdfs">📚 PDF Notes</div>
             <div class="card" id="nav-results">🏆 My Results</div>
+            <div class="card" id="nav-youtube" style="background: #ff0000; color: white; border: 2px solid #cc0000;">▶️ YouTube</div>
         </div>
 
         <div class="banner-section">
@@ -125,7 +126,7 @@
             <li><a href="#contact">📞 Support</a></li>
         </ul>
         <div class="sidebar-footer-info">
-            <p>App Version 3.5 (UPI & Auto-Login)</p>
+            <p>App Version 3.7</p>
         </div>
     </div>
 
@@ -183,7 +184,10 @@
 
     <div id="test-engine-container" class="hidden">
         <div class="test-header">
-            <h3 id="te-title" style="font-size: 16px; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:65%;">Exam</h3>
+            <div style="display:flex; align-items:center;">
+                <span id="exit-test-btn" style="color:#ff4d4d; font-size:24px; cursor:pointer; margin-right:15px; background:white; padding: 0 8px; border-radius:4px;" title="Exit Test">✖</span>
+                <h3 id="te-title" style="font-size: 16px; margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:150px;">Exam</h3>
+            </div>
             <div class="timer-box" id="te-timer">⏳ 00:00</div>
         </div>
         
@@ -204,7 +208,7 @@
         <div class="test-footer">
             <button class="nav-btn" id="btn-prev" disabled>⬅ Prev</button>
             <button class="nav-btn submit-test-btn hidden" id="btn-submit-exam">Submit</button>
-            <button class="nav-btn" id="btn-next" disabled>Next ➡</button>
+            <button class="nav-btn" id="btn-next">Next ➡</button>
         </div>
     </div>
 
@@ -215,10 +219,6 @@
             <div style="background: #f0f4ff; border: 2px dashed #0b2d63; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
                 <p style="font-size: 16px; margin-bottom: 5px; color:#333;">Your Final Score</p>
                 <p id="tr-score" style="color: #28a745; font-size: 32px; font-weight:bold; margin-bottom: 10px;">0 / 0</p>
-                <div style="display:flex; justify-content:space-around; font-size:14px; font-weight:bold;">
-                    <span style="color:green;" id="tr-correct">✅ 0</span>
-                    <span style="color:red;" id="tr-wrong">❌ 0</span>
-                </div>
             </div>
             <button class="submit-btn" id="btn-close-result" style="background:#ce9c3b; color:#0b2d63;">Back to Dashboard</button>
         </div>
