@@ -43,11 +43,18 @@ document.addEventListener("DOMContentLoaded", function() {
             splash.style.opacity = '0';
             setTimeout(() => {
                 splash.classList.add('hidden');
-                if(!currentUser && login) {
+                
+                // ================= AUTO ADMIN LOGIN =================
+                if(localStorage.getItem("adminAuth") === "true"){
+                    document.getElementById("dashboard").classList.add("hidden");
+                    document.getElementById("admin-panel").classList.remove("hidden");
+                } 
+                else if(!currentUser && login) {
                     login.classList.remove('hidden');
                     login.style.display = 'flex';
                     if(document.getElementById('close-login')) document.getElementById('close-login').style.display = 'none';
-                } else if(dash) {
+                } 
+                else if(dash) {
                     dash.classList.remove('hidden');
                 }
             }, 600);
@@ -114,7 +121,7 @@ document.addEventListener("DOMContentLoaded", function() {
     if(overlay) overlay.onclick = window.closeAll;
 
     // ==========================================
-    // NAYA FIX: SIDEBAR LINKS CLICK LOGIC
+    // SIDEBAR LINKS CLICK LOGIC
     // ==========================================
     
     // 1. Sidebar Login / Profile Button
@@ -122,7 +129,7 @@ document.addEventListener("DOMContentLoaded", function() {
     if(openLoginBtn) {
         openLoginBtn.onclick = (e) => {
             e.preventDefault();
-            window.closeAll(); // Click karte hi sidebar band ho jayega
+            window.closeAll(); 
             if(currentUser) {
                 document.getElementById('dashboard').classList.add('hidden');
                 document.getElementById('profile-section').classList.remove('hidden');
@@ -130,7 +137,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 const loginModal = document.getElementById('login-modal');
                 loginModal.classList.remove('hidden');
                 loginModal.style.display = 'flex';
-                // Modal mein close button show karna (agar pehle hide kiya ho)
                 if(document.getElementById('close-login')) document.getElementById('close-login').style.display = 'block';
             }
         };
@@ -173,6 +179,23 @@ document.addEventListener("DOMContentLoaded", function() {
             document.getElementById('profile-section').classList.add('hidden');
             const sec = document.getElementById('pdfs-section');
             if(sec) window.scrollTo({ top: sec.offsetTop - 70, behavior: 'smooth' });
+        };
+    }
+
+    // ================= SIDEBAR ADMIN BUTTON =================
+    const openAdminBtn = document.getElementById('open-admin-btn');
+    if(openAdminBtn){
+        openAdminBtn.onclick = (e) => {
+            e.preventDefault();
+
+            window.closeAll(); // sidebar close
+
+            const loginModal = document.getElementById('login-modal');
+            loginModal.classList.remove('hidden');
+            loginModal.style.display = 'flex';
+
+            // Direct admin tab open
+            document.getElementById('tab-admin').click();
         };
     }
 
@@ -236,6 +259,28 @@ document.addEventListener("DOMContentLoaded", function() {
             btn.innerText = "Login";
         };
     }
+
+    // ================= ADMIN LOGIN =================
+    const adminForm = document.getElementById('admin-login-form');
+    if(adminForm){
+        adminForm.addEventListener("submit", function(e){
+            e.preventDefault();
+
+            const id = document.getElementById("admin-id").value.trim();
+            const pass = document.getElementById("admin-pass").value.trim();
+
+            if(id === "ace_admin" && pass === "ace@123"){
+                localStorage.setItem("adminAuth", "true");
+
+                document.getElementById("login-modal").classList.add("hidden");
+                document.getElementById("dashboard").classList.add("hidden");
+                document.getElementById("admin-panel").classList.remove("hidden");
+
+            } else {
+                alert("❌ Invalid Admin Credentials");
+            }
+        });
+    }
     
     // Back Buttons in Profile/Admin
     document.getElementById('back-to-dash-student').onclick = () => {
@@ -250,7 +295,69 @@ document.addEventListener("DOMContentLoaded", function() {
         };
     }
 
-    document.querySelectorAll('.logout-btn').forEach(b => b.onclick = () => { localStorage.clear(); location.reload(); });
+    // ================= LOGOUT FIX =================
+    function setupLogout() {
+        document.querySelectorAll('.logout-btn').forEach(btn => {
+            btn.onclick = () => {
+                localStorage.removeItem('aceUser');
+                localStorage.removeItem('adminAuth');
+
+                alert("✅ Logged out successfully");
+
+                // UI reset
+                document.getElementById('admin-panel').classList.add('hidden');
+                document.getElementById('profile-section').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+
+                location.reload(); // safe reload
+            };
+        });
+    }
+    setupLogout();
+
+    // ================= SAFE EVENTS (Next, Prev, Submit, Exit) =================
+    if(document.getElementById('btn-next')){
+        document.getElementById('btn-next').onclick = () => { currentQIndex++; renderQ(); };
+    }
+
+    if(document.getElementById('btn-prev')){
+        document.getElementById('btn-prev').onclick = () => { currentQIndex--; renderQ(); };
+    }
+
+    if(document.getElementById('btn-submit-exam')){
+        document.getElementById('btn-submit-exam').onclick = submitExam;
+    }
+
+    if(document.getElementById('exit-test-btn')){
+        document.getElementById('exit-test-btn').onclick = () => {
+            if(confirm("Kya aap test se bahar aana chahte hain?")){
+                clearInterval(timerInterval);
+                document.getElementById('test-engine-container').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                // State reset
+                currentQIndex = 0;
+                userAnswers = {};
+            }
+        };
+    }
+
+    // ================= RESULT CLOSE FIX =================
+    const btnCloseResult = document.getElementById('btn-close-result');
+    if(btnCloseResult){
+        btnCloseResult.onclick = () => {
+            document.getElementById('test-result-modal').classList.add('hidden');
+            document.getElementById('test-result-modal').style.display = 'none';
+            document.getElementById('dashboard').classList.remove('hidden');
+        };
+    }
+
+    // ================= ADMIN SECURE BACK NAVIGATION =================
+    window.onpageshow = function() {
+        if(localStorage.getItem("adminAuth") !== "true"){
+            document.getElementById("admin-panel").classList.add("hidden");
+        }
+    };
+
 });
 
 // Content Fetcher
@@ -340,31 +447,22 @@ function renderQ() {
     });
     document.getElementById('te-options').innerHTML = h;
     
-    // Proper Next/Prev disable logic
-    document.getElementById('btn-prev').disabled = currentQIndex === 0;
+    if(document.getElementById('btn-prev')){
+        document.getElementById('btn-prev').disabled = currentQIndex === 0;
+    }
     
     const btnNext = document.getElementById('btn-next');
-    btnNext.classList.toggle('hidden', currentQIndex === testQuestions.length-1);
-    btnNext.disabled = false; 
+    if(btnNext){
+        btnNext.classList.toggle('hidden', currentQIndex === testQuestions.length-1);
+        btnNext.disabled = false; 
+    }
 
-    document.getElementById('btn-submit-exam').classList.toggle('hidden', currentQIndex !== testQuestions.length-1);
+    if(document.getElementById('btn-submit-exam')){
+        document.getElementById('btn-submit-exam').classList.toggle('hidden', currentQIndex !== testQuestions.length-1);
+    }
 }
 
 window.setAns = (v) => { userAnswers[currentQIndex] = v; };
-document.getElementById('btn-next').onclick = () => { currentQIndex++; renderQ(); };
-document.getElementById('btn-prev').onclick = () => { currentQIndex--; renderQ(); };
-document.getElementById('btn-submit-exam').onclick = submitExam;
-
-// PROPER EXIT TEST LOGIC
-document.getElementById('exit-test-btn').onclick = () => {
-    if(confirm("Kya aap test se bahar aana chahte hain? Aapki progress save nahi hogi.")) {
-        clearInterval(timerInterval);
-        document.getElementById('test-engine-container').classList.add('hidden');
-        document.getElementById('dashboard').classList.remove('hidden');
-        currentQIndex = 0;
-        userAnswers = {};
-    }
-};
 
 function submitExam() {
     clearInterval(timerInterval);
@@ -376,11 +474,3 @@ function submitExam() {
     document.getElementById('test-result-modal').classList.remove('hidden');
     document.getElementById('test-result-modal').style.display = 'flex';
 }
-
-// Result ke baad modal close karke dashboard me bhejna
-document.getElementById('btn-close-result').onclick = () => {
-    document.getElementById('test-result-modal').classList.add('hidden');
-    document.getElementById('test-result-modal').style.display = 'none';
-    document.getElementById('dashboard').classList.remove('hidden');
-};
-                                                                     
