@@ -153,4 +153,9 @@ body { background-color: #0b2d63; color: white; overflow-x: hidden; scroll-behav
 .rank-row:nth-child(3) { background: linear-gradient(90deg, #faebd7, #fff); border-left: 5px solid #cd7f32; font-weight: bold; }
 .rank-name { color: #0b2d63; font-size: 15px; display: flex; align-items: center; gap: 8px; }
 .rank-score { background: #0b2d63; color: #ffd700; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: bold; }
-                          
+
+/* ADMIN LOGIN HIGHLIGHT */
+#open-admin-btn {
+    color: gold;
+    font-weight: bold;
+}
